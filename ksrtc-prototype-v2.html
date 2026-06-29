@@ -17,6 +17,11 @@
 <!-- DS SELECT + TEXTFIELD — single source of truth -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kaur6amarpreet-bot/oprs-design-system@main/src/components/Select/Select.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kaur6amarpreet-bot/oprs-design-system@main/src/components/TextField/TextField.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kaur6amarpreet-bot/oprs-design-system@main/src/components/SeatMap/SeatMap.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kaur6amarpreet-bot/oprs-design-system@main/src/components/EmptyState/EmptyState.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kaur6amarpreet-bot/oprs-design-system@main/src/components/FareSummary/FareSummary.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kaur6amarpreet-bot/oprs-design-system@main/src/components/StatItem/StatItem.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kaur6amarpreet-bot/oprs-design-system@main/src/components/NavigationDrawer/NavigationDrawer.css">
 <style>
 /* ═══════════════════════════════════════════════
    V2 BRIDGE — maps v1 token names → DS token names
@@ -146,11 +151,8 @@ body{font-family:'Roboto',sans-serif;font-size:14px;background:var(--color-backg
 
 /* ── Ticket stats ── */
 .ticket-info{display:flex;align-items:center;gap:12px;margin-left:auto;}
-.stat-item{display:flex;flex-direction:column;align-items:flex-end;}
-.stat-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--color-on-surface-variant);}
-.stat-val{font-size:14px;font-weight:700;color:var(--color-on-surface);}
-.stat-val.credit{color:var(--color-tertiary);}
 .stat-divider{width:1px;height:28px;background:var(--color-outline-variant);}
+.ksrtc-stat-item__value.credit{color:var(--color-tertiary);}
 .search-top{display:flex;align-items:center;gap:16px;margin-bottom:12px;flex-wrap:wrap;}
 
 /* ── Search fields ── */
@@ -285,22 +287,7 @@ body{font-family:'Roboto',sans-serif;font-size:14px;background:var(--color-backg
 .berth-gap{width:10px;flex-shrink:0;}
 .berth-gap-sm{width:4px;flex-shrink:0;}
 /* Seat cells — v1 exact sizing + colors */
-.seat{position:relative;width:26px;height:26px;background:#fff;border:1.5px solid transparent;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;cursor:pointer;transition:transform .1s,box-shadow .1s;user-select:none;flex-shrink:0;overflow:hidden;}
-.seat::before,.seat::after{display:none!important;}
-.seat:hover:not(.blocked):not(.conductor):not(.empty){transform:scale(1.05);box-shadow:var(--elev1);}
-.seat.available{background:#fff;color:#2E7D32;border-color:#A5D6A7;}
-.seat.selected{background:#2E7D32;color:#fff;border-color:#1B5E20;}
-.seat.selected.ladies{background:#C2185B;color:#fff;border-color:#880E4F;}
-.seat.selected.quota{background:#5C6BC0;color:#fff;border-color:#3949AB;}
-.seat.ladies{background:#fff;color:#C2185B;border-color:#F48FB1;}
-.seat.blocked{background:#F5F5F5;color:#90A4AE;border-color:#B0BEC5;cursor:not-allowed;opacity:.55;}
-.seat.conductor{background:#fff;color:#E64A19;border-color:#FFCCBC;cursor:default;}
-.seat.quota{background:#fff;color:#5C6BC0;border-color:#C5CAE9;}
-.seat.empty{visibility:hidden;cursor:default;}
 /* Legend */
-.seat-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center;}
-.leg-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--on-surface-variant);}
-.leg-dot{width:12px;height:12px;border-radius:50%;border:2px solid transparent;flex-shrink:0;}
 /* Boarding col */
 .boarding-col{padding:16px;display:flex;flex-direction:column;gap:16px;}
 .boarding-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
@@ -351,9 +338,6 @@ body{font-family:'Roboto',sans-serif;font-size:14px;background:var(--color-backg
 /* ═══════════════════════════════════════════════
    EMPTY STATE
 ═══════════════════════════════════════════════ */
-.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;gap:12px;text-align:center;}
-.empty-state>.msym{font-size:56px;color:var(--color-outline-variant);}
-.empty-state p{font-size:14px;color:var(--color-on-surface-variant);max-width:360px;}
 
 /* ═══════════════════════════════════════════════
    SKELETON LOADING
@@ -581,7 +565,7 @@ body{font-family:'Roboto',sans-serif;font-size:14px;background:var(--color-backg
 
     <!-- Empty state -->
     <div class="card" id="empty-state">
-      <div class="empty-state"><span class="msym">description</span><p>Report Will Display Here</p></div>
+      <div class="ksrtc-empty-state"><span class="msym ksrtc-empty-state__icon">description</span><p class="ksrtc-empty-state__desc">Report Will Display Here</p></div>
     </div>
 
     <!-- Results -->
@@ -627,19 +611,19 @@ body{font-family:'Roboto',sans-serif;font-size:14px;background:var(--color-backg
         <div class="bus-container">
           <div class="bus-grid">
             <div class="bg-left-wheel"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="10" stroke="#455A64" stroke-width="1.5" fill="#fff"/><circle cx="11" cy="11" r="3.5" stroke="#455A64" stroke-width="1.5" fill="#fff"/><line x1="11" y1="7.5" x2="11" y2="1.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/><line x1="14.8" y1="13.5" x2="19.8" y2="16.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/><line x1="7.2" y1="13.5" x2="2.2" y2="16.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-            <div class="berth-row" id="upper-grid"></div>
+            <div class="ksrtc-berth-row" id="upper-grid"></div>
             <div class="bg-row-gap"></div><div class="bg-row-gap"></div>
             <div class="bg-left-label">Lower</div>
-            <div class="berth-row" id="lower-grid"></div>
+            <div class="ksrtc-berth-row" id="lower-grid"></div>
           </div>
         </div>
-        <div class="seat-legend">
-          <div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#A5D6A7;"></div>Available</div>
-          <div class="leg-item"><div class="leg-dot" style="background:#2E7D32;border-color:#1B5E20;"></div>Selected</div>
-          <div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#F48FB1;color:#C2185B;"></div>Ladies</div>
-          <div class="leg-item"><div class="leg-dot" style="background:#F5F5F5;border-color:#B0BEC5;opacity:.55;"></div>Blocked</div>
-          <div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#FFCCBC;"></div>Conductor</div>
-          <div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#C5CAE9;"></div>Quota</div>
+        <div class="ksrtc-seat-legend">
+          <span class="ksrtc-legend-item ksrtc-legend--available"><span class="ksrtc-legend-swatch"></span>Available</span>
+          <span class="ksrtc-legend-item ksrtc-legend--selected"><span class="ksrtc-legend-swatch"></span>Selected</span>
+          <span class="ksrtc-legend-item ksrtc-legend--ladies"><span class="ksrtc-legend-swatch"></span>Ladies</span>
+          <span class="ksrtc-legend-item ksrtc-legend--blocked"><span class="ksrtc-legend-swatch"></span>Blocked</span>
+          <span class="ksrtc-legend-item ksrtc-legend--conductor"><span class="ksrtc-legend-swatch"></span>Conductor</span>
+          <span class="ksrtc-legend-item ksrtc-legend--quota"><span class="ksrtc-legend-swatch"></span>Quota</span>
         </div>
       </div>
       <div class="boarding-col">
@@ -731,7 +715,7 @@ body{font-family:'Roboto',sans-serif;font-size:14px;background:var(--color-backg
     <div class="search-card">
       <div class="search-top">
         <div class="seg-btn" id="cur-trip-btn"><button class="seg-opt active" onclick="setTrip(this)">One-Way</button><button class="seg-opt" onclick="setTrip(this)">Return Trip</button><button class="seg-opt" onclick="setTrip(this)">Trip Number</button></div>
-        <div class="ticket-info"><div class="stat-item"><span class="stat-lbl">Ticket No.</span><span class="stat-val">51046794</span></div><div class="stat-divider"></div><div class="stat-item"><span class="stat-lbl">Available Credit</span><span class="stat-val credit">₹ 50,856.00</span></div></div>
+        <div class="ticket-info"><div class="ksrtc-stat-item"><div class="ksrtc-stat-item__text"><span class="ksrtc-stat-item__label">Ticket No.</span><span class="ksrtc-stat-item__value">51046794</span></div></div><div class="stat-divider"></div><div class="ksrtc-stat-item"><div class="ksrtc-stat-item__text"><span class="ksrtc-stat-item__label">Available Credit</span><span class="ksrtc-stat-item__value credit">₹ 50,856.00</span></div></div></div>
       </div>
       <div class="search-fields">
         <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Source *</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Bengaluru</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Mysuru</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Hubli</div></div></div></div>
@@ -746,7 +730,7 @@ body{font-family:'Roboto',sans-serif;font-size:14px;background:var(--color-backg
         <button class="btn btn-outlined" onclick="doReset()"><span class="msym">refresh</span>Reset</button>
       </div>
     </div>
-    <div class="card" id="cur-empty-state"><div class="empty-state"><span class="msym">description</span><p>Report Will Display Here</p></div></div>
+    <div class="card" id="cur-empty-state"><div class="ksrtc-empty-state"><span class="msym ksrtc-empty-state__icon">description</span><p class="ksrtc-empty-state__desc">Report Will Display Here</p></div></div>
     <div id="cur-results-wrap" style="display:none;flex-direction:column;gap:12px;">
       <div class="results-card card"><div class="sec-header"><h2>Available Services</h2></div><div class="grid-scroll-wrap"><div id="ag-cur" class="ag-theme-alpine ag-theme-ksrtc" style="width:100%;"></div></div></div>
       <div class="results-card card" id="cur-return-card" style="display:none"><div class="sec-header"><h2>Return Services</h2></div><div class="grid-scroll-wrap"><div id="ag-cur-return" class="ag-theme-alpine ag-theme-ksrtc" style="width:100%;"></div></div></div>
@@ -838,7 +822,7 @@ body{font-family:'Roboto',sans-serif;font-size:14px;background:var(--color-backg
         <button class="btn btn-outlined" onclick="doReset()"><span class="msym">refresh</span>Reset</button>
       </div>
     </div>
-    <div class="card" id="blk-empty-state"><div class="empty-state"><span class="msym">description</span><p>Report Will Display Here</p></div></div>
+    <div class="card" id="blk-empty-state"><div class="ksrtc-empty-state"><span class="msym ksrtc-empty-state__icon">description</span><p class="ksrtc-empty-state__desc">Report Will Display Here</p></div></div>
     <div id="blk-results-wrap" style="display:none;flex-direction:column;gap:12px;">
       <div class="results-card card"><div class="sec-header"><h2>Available Services — Block Seats</h2></div><div class="grid-scroll-wrap"><div id="ag-blk" class="ag-theme-alpine ag-theme-ksrtc" style="width:100%;"></div></div></div>
     </div>
@@ -854,17 +838,17 @@ body{font-family:'Roboto',sans-serif;font-size:14px;background:var(--color-backg
         <div class="bus-container">
           <div class="bus-grid">
             <div class="bg-left-wheel"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="10" stroke="#455A64" stroke-width="1.5" fill="#fff"/><circle cx="11" cy="11" r="3.5" stroke="#455A64" stroke-width="1.5" fill="#fff"/><line x1="11" y1="7.5" x2="11" y2="1.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/><line x1="14.8" y1="13.5" x2="19.8" y2="16.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/><line x1="7.2" y1="13.5" x2="2.2" y2="16.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-            <div class="berth-row" id="blk-upper-grid"></div>
+            <div class="ksrtc-berth-row" id="blk-upper-grid"></div>
             <div class="bg-row-gap"></div><div class="bg-row-gap"></div>
             <div class="bg-left-label">Lower</div>
-            <div class="berth-row" id="blk-lower-grid"></div>
+            <div class="ksrtc-berth-row" id="blk-lower-grid"></div>
           </div>
         </div>
-        <div class="seat-legend">
-          <div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#A5D6A7;"></div>Available</div>
-          <div class="leg-item"><div class="leg-dot" style="background:#2E7D32;border-color:#1B5E20;"></div>Selected</div>
-          <div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#F48FB1;"></div>Ladies</div>
-          <div class="leg-item"><div class="leg-dot" style="background:#F5F5F5;border-color:#B0BEC5;opacity:.55;"></div>Blocked</div>
+        <div class="ksrtc-seat-legend">
+          <span class="ksrtc-legend-item ksrtc-legend--available"><span class="ksrtc-legend-swatch"></span>Available</span>
+          <span class="ksrtc-legend-item ksrtc-legend--selected"><span class="ksrtc-legend-swatch"></span>Selected</span>
+          <span class="ksrtc-legend-item ksrtc-legend--ladies"><span class="ksrtc-legend-swatch"></span>Ladies</span>
+          <span class="ksrtc-legend-item ksrtc-legend--blocked"><span class="ksrtc-legend-swatch"></span>Blocked</span>
         </div>
       </div>
       <div class="boarding-col">
@@ -921,7 +905,7 @@ body{font-family:'Roboto',sans-serif;font-size:14px;background:var(--color-backg
         <button class="btn btn-outlined"><span class="msym">refresh</span>Reset</button>
       </div>
     </div>
-    <div class="card" id="unblk-empty-state"><div class="empty-state"><span class="msym">description</span><p>Report Will Display Here</p></div></div>
+    <div class="card" id="unblk-empty-state"><div class="ksrtc-empty-state"><span class="msym ksrtc-empty-state__icon">description</span><p class="ksrtc-empty-state__desc">Report Will Display Here</p></div></div>
     <div id="unblk-results-wrap" class="card" style="display:none;flex-direction:column;overflow:visible;flex:1;">
       <div class="sec-header"><h2>Listing Blocked Seats</h2></div>
       <div class="grid-scroll-wrap"><div id="ag-unblk" class="ag-theme-alpine ag-theme-ksrtc" style="width:100%;"></div></div>
@@ -944,7 +928,7 @@ body{font-family:'Roboto',sans-serif;font-size:14px;background:var(--color-backg
         <button class="btn btn-outlined" onclick="doReset()"><span class="msym">refresh</span>Reset</button>
       </div>
     </div>
-    <div class="card" id="link-empty-state"><div class="empty-state"><span class="msym">description</span><p>Ticket Will Display Here</p></div></div>
+    <div class="card" id="link-empty-state"><div class="ksrtc-empty-state"><span class="msym ksrtc-empty-state__icon">description</span><p class="ksrtc-empty-state__desc">Ticket Will Display Here</p></div></div>
     <div id="link-results-wrap" style="display:none;flex-direction:column;gap:12px;">
       <div class="results-card card"><div class="sec-header"><h2>Start Trip Services</h2></div><div class="grid-scroll-wrap"><div id="ag-lnk-start" class="ag-theme-alpine ag-theme-ksrtc" style="width:100%;"></div></div></div>
       <div class="results-card card lnk-connect-wrap" id="lnk-connect-card"><div id="lnk-connect-lock" class="lnk-lock-overlay"><span class="msym">lock</span><p>Book your Start Trip first to unlock Connect Trip</p></div><div class="sec-header"><h2>Connect Trip Services</h2></div><div class="grid-scroll-wrap"><div id="ag-lnk-connect" class="ag-theme-alpine ag-theme-ksrtc" style="width:100%;"></div></div></div>
@@ -960,12 +944,12 @@ body{font-family:'Roboto',sans-serif;font-size:14px;background:var(--color-backg
         <span class="seat-map-title">Start Trip — Seats</span>
         <div class="bus-container"><div class="bus-grid">
           <div class="bg-left-wheel"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="10" stroke="#455A64" stroke-width="1.5" fill="#fff"/><circle cx="11" cy="11" r="3.5" stroke="#455A64" stroke-width="1.5" fill="#fff"/><line x1="11" y1="7.5" x2="11" y2="1.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/><line x1="14.8" y1="13.5" x2="19.8" y2="16.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/><line x1="7.2" y1="13.5" x2="2.2" y2="16.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-          <div class="berth-row" id="lnk-start-upper-grid"></div>
+          <div class="ksrtc-berth-row" id="lnk-start-upper-grid"></div>
           <div class="bg-row-gap"></div><div class="bg-row-gap"></div>
           <div class="bg-left-label">Lower</div>
-          <div class="berth-row" id="lnk-start-lower-grid"></div>
+          <div class="ksrtc-berth-row" id="lnk-start-lower-grid"></div>
         </div></div>
-        <div class="seat-legend"><div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#A5D6A7;"></div>Available</div><div class="leg-item"><div class="leg-dot" style="background:#2E7D32;border-color:#1B5E20;"></div>Selected</div><div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#F48FB1;"></div>Ladies</div></div>
+        <div class="ksrtc-seat-legend"><span class="ksrtc-legend-item ksrtc-legend--available"><span class="ksrtc-legend-swatch"></span>Available</span><span class="ksrtc-legend-item ksrtc-legend--selected"><span class="ksrtc-legend-swatch"></span>Selected</span><span class="ksrtc-legend-item ksrtc-legend--ladies"><span class="ksrtc-legend-swatch"></span>Ladies</span></div>
       </div>
       <div class="boarding-col">
         <div><div class="field-label">Boarding Point</div><div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Select Point</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Bengaluru (Kempegowda BS)</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Bengaluru (Majestic)</div></div></div></div></div>
@@ -997,12 +981,12 @@ body{font-family:'Roboto',sans-serif;font-size:14px;background:var(--color-backg
         <span class="seat-map-title">Connect Trip — Seats</span>
         <div class="bus-container"><div class="bus-grid">
           <div class="bg-left-wheel"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="10" stroke="#455A64" stroke-width="1.5" fill="#fff"/><circle cx="11" cy="11" r="3.5" stroke="#455A64" stroke-width="1.5" fill="#fff"/><line x1="11" y1="7.5" x2="11" y2="1.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/><line x1="14.8" y1="13.5" x2="19.8" y2="16.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/><line x1="7.2" y1="13.5" x2="2.2" y2="16.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-          <div class="berth-row" id="lnk-connect-upper-grid"></div>
+          <div class="ksrtc-berth-row" id="lnk-connect-upper-grid"></div>
           <div class="bg-row-gap"></div><div class="bg-row-gap"></div>
           <div class="bg-left-label">Lower</div>
-          <div class="berth-row" id="lnk-connect-lower-grid"></div>
+          <div class="ksrtc-berth-row" id="lnk-connect-lower-grid"></div>
         </div></div>
-        <div class="seat-legend"><div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#A5D6A7;"></div>Available</div><div class="leg-item"><div class="leg-dot" style="background:#2E7D32;border-color:#1B5E20;"></div>Selected</div><div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#F48FB1;"></div>Ladies</div></div>
+        <div class="ksrtc-seat-legend"><span class="ksrtc-legend-item ksrtc-legend--available"><span class="ksrtc-legend-swatch"></span>Available</span><span class="ksrtc-legend-item ksrtc-legend--selected"><span class="ksrtc-legend-swatch"></span>Selected</span><span class="ksrtc-legend-item ksrtc-legend--ladies"><span class="ksrtc-legend-swatch"></span>Ladies</span></div>
       </div>
       <div class="boarding-col">
         <div><div class="field-label">Boarding Point</div><div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Select Point</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Channapatna BS</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Mandya BS</div></div></div></div></div>
@@ -1098,7 +1082,7 @@ body{font-family:'Roboto',sans-serif;font-size:14px;background:var(--color-backg
         <button class="btn btn-orange" onclick="doCircularSearch()"><span class="msym">search</span>Search</button>
       </div>
     </div>
-    <div class="card" id="circ-empty-state"><div class="empty-state"><span class="msym">description</span><p>Report Will Display Here</p></div></div>
+    <div class="card" id="circ-empty-state"><div class="ksrtc-empty-state"><span class="msym ksrtc-empty-state__icon">description</span><p class="ksrtc-empty-state__desc">Report Will Display Here</p></div></div>
     <div id="circ-results-wrap" style="display:none;flex-direction:column;gap:12px;">
       <div class="results-card card">
         <div class="sec-header"><h2>Circular Ticket Service</h2></div>
@@ -1779,13 +1763,14 @@ function selectLnkConnectBus(rowIndex, gridId){ _openBusPanel(rowIndex, gridId |
 
 /* ─── SEAT MAP ─── */
 function makeSeat(s, context) {
-  if (!s) return document.createElement('span');
+  if (!s) { var emp = document.createElement('span'); emp.className = 'ksrtc-seat-empty ksrtc-seat-empty--berth'; return emp; }
   var el = document.createElement('div');
-  el.className = 'seat ' + s.t + (selectedSeats.has(s.n) ? ' selected' : '');
+  var sel = selectedSeats.has(s.n) ? ' ksrtc-seat--selected' : '';
+  el.className = 'ksrtc-seat ksrtc-seat--berth ksrtc-seat--' + s.t + sel;
   el.textContent = s.n;
   el.id = 'seat-' + context + '-' + s.n;
   el.dataset.orig = s.t;
-  if (s.t !== 'blocked' && s.t !== 'conductor') {
+  if (s.t !== 'blocked' && s.t !== 'conductor' && s.t !== 'quota') {
     (function(_el, _n, _orig, _ctx){ _el.onclick = function(){ toggleSeat(_el, _n, _orig, _ctx); }; })(el, s.n, s.t, context);
   }
   return el;
@@ -1804,7 +1789,7 @@ function buildGrid(upperContainerId, lowerContainerId, seats, context) {
         container.appendChild(gap);
       } else {
         var bCol = document.createElement('div');
-        bCol.className = 'berth-col';
+        bCol.className = 'ksrtc-berth-col';
         bCol.appendChild(makeSeat(col.top, context));
         bCol.appendChild(makeSeat(col.bot, context));
         container.appendChild(bCol);
@@ -1820,11 +1805,11 @@ function toggleSeat(el, n, origType, ctx) {
   ctx = ctx || _currentContext || 'main';
   if (selectedSeats.has(n)) {
     selectedSeats.delete(n);
-    el.className = 'seat ' + origType;
+    el.className = 'ksrtc-seat ksrtc-seat--berth ksrtc-seat--' + origType;
     removePaxRow(n, ctx);
   } else {
     selectedSeats.add(n);
-    el.className = 'seat selected' + (origType === 'ladies' ? ' ladies' : origType === 'quota' ? ' quota' : '');
+    el.className = 'ksrtc-seat ksrtc-seat--berth ksrtc-seat--selected' + (origType === 'ladies' ? ' ksrtc-seat--ladies' : '');
     addPaxRow(n, ctx);
   }
   updateFareCard();
