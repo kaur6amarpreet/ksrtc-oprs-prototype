@@ -435,6 +435,10 @@ body{font-family:'Roboto',sans-serif;font-size:14px;background:var(--color-backg
 #results-wrap{display:none;flex-direction:column;gap:12px;}
 #cur-results-wrap,#blk-results-wrap,#unblk-results-wrap,#link-results-wrap{display:none;}
 .results-card{display:flex;flex-direction:column;overflow:visible;}
+.lnk-connect-wrap{position:relative;}
+.lnk-lock-overlay{position:absolute;inset:0;background:rgba(238,242,249,.92);z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border-radius:var(--shape-md);backdrop-filter:blur(2px);}
+.lnk-lock-overlay .msym{font-size:40px;color:var(--color-on-surface-variant);opacity:.5;}
+.lnk-lock-overlay p{font-size:13px;color:var(--color-on-surface-variant);font-weight:500;margin:0;}
 
 /* ═══════════════════════════════════════════════
    BOARDING / DROPPING SECTION
@@ -801,7 +805,11 @@ body{font-family:'Roboto',sans-serif;font-size:14px;background:var(--color-backg
       <div class="payment-fields">
         <div class="pay-field">
           <label>Payment Mode *</label>
-          <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value="" id="cur-pay-mode-menu"><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Payment Mode</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder">Select Mode</span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Cash</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Credit/Debit</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Net Banking</div><div class="ksrtc-select__option" onclick="md3Pick(this)">UPI</div></div></div></div>
+          <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value="" id="cur-pay-mode-menu"><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Payment Mode</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder">Select Mode</span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" data-value="CASH" onclick="curPayModePick(this);md3Pick(this)">Cash</div><div class="ksrtc-select__option" data-value="CARD" onclick="curPayModePick(this);md3Pick(this)">Credit/Debit</div><div class="ksrtc-select__option" data-value="NET_BANKING" onclick="curPayModePick(this);md3Pick(this)">Net Banking</div><div class="ksrtc-select__option" data-value="UPI" onclick="curPayModePick(this);md3Pick(this)">UPI</div></div></div></div>
+        </div>
+        <div class="pay-field" id="cur-pay-ref-wrap" style="display:none">
+          <label>Transaction Ref #</label>
+          <input type="text" id="cur-pay-ref" placeholder="Enter reference number">
         </div>
       </div>
       <div class="action-btns">
@@ -939,7 +947,7 @@ body{font-family:'Roboto',sans-serif;font-size:14px;background:var(--color-backg
     <div class="card" id="link-empty-state"><div class="empty-state"><span class="msym">description</span><p>Ticket Will Display Here</p></div></div>
     <div id="link-results-wrap" style="display:none;flex-direction:column;gap:12px;">
       <div class="results-card card"><div class="sec-header"><h2>Start Trip Services</h2></div><div class="grid-scroll-wrap"><div id="ag-lnk-start" class="ag-theme-alpine ag-theme-ksrtc" style="width:100%;"></div></div></div>
-      <div class="results-card card"><div class="sec-header"><h2>Connect Trip Services</h2></div><div class="grid-scroll-wrap"><div id="ag-lnk-connect" class="ag-theme-alpine ag-theme-ksrtc" style="width:100%;"></div></div></div>
+      <div class="results-card card lnk-connect-wrap" id="lnk-connect-card"><div id="lnk-connect-lock" class="lnk-lock-overlay"><span class="msym">lock</span><p>Book your Start Trip first to unlock Connect Trip</p></div><div class="sec-header"><h2>Connect Trip Services</h2></div><div class="grid-scroll-wrap"><div id="ag-lnk-connect" class="ag-theme-alpine ag-theme-ksrtc" style="width:100%;"></div></div></div>
     </div>
   </main>
 </div>
@@ -975,7 +983,7 @@ body{font-family:'Roboto',sans-serif;font-size:14px;background:var(--color-backg
       <div class="action-btns">
         <button class="btn btn-outlined" onclick="closePanelLinkStart()"><span class="msym">close</span>Cancel</button>
         <button class="btn btn-outlined" onclick="clearSeatSelection('lnk-start','lnk-start-pax-rows','lnk-start-fare-card')"><span class="msym">restart_alt</span>Clear</button>
-        <button class="btn btn-orange" onclick="showSuccessModal('Link ticket generated successfully.')"><span class="msym">link</span>Book Connect Trip</button>
+        <button class="btn btn-orange" onclick="bookLnkStartTrip()"><span class="msym">link</span>Book Connect Trip</button>
       </div>
     </div>
   </div>
@@ -1916,9 +1924,23 @@ function closeSeatPanel()     { _closePanel('ag-onward'); }
 function closePanelCurrent()  { _closePanel('ag-cur'); }
 function closePanelBlock()    { _closePanel('ag-blk'); }
 function closePanelLinkStart(){ _closePanel('ag-lnk-start'); }
+function bookLnkStartTrip(){
+  var lock = document.getElementById('lnk-connect-lock');
+  if (lock) lock.style.display = 'none';
+  setTimeout(function(){
+    var card = document.getElementById('lnk-connect-card');
+    if (card) card.scrollIntoView({ behavior:'smooth', block:'start' });
+  }, 200);
+  showSuccessModal('Start Trip booked. Now select your Connect Trip.');
+}
 function closePanelLinkConnect(){ _closePanel('ag-lnk-connect'); }
 
 /* ─── PAYMENT MODE ─── */
+function curPayModePick(item) {
+  var val = item.dataset.value;
+  var wrap = document.getElementById('cur-pay-ref-wrap');
+  if (wrap) wrap.style.display = (val && val !== 'CASH') ? '' : 'none';
+}
 function payModePick(item) {
   var val = item.dataset.value;
   document.getElementById('pay-ref-wrap').style.display = (val && val !== 'CASH') ? '' : 'none';
