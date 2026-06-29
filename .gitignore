@@ -1,0 +1,7 @@
+.DS_Store
+.claude/
+ksrtc-design-system/
+screenshot/
+SESSION-CONTEXT.md
+node_modules/
+package-lock.json

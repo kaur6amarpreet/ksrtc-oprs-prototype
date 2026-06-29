@@ -1,0 +1,8 @@
+{
+  "name": "ksrtc-oprs",
+  "private": true,
+  "scripts": {
+    "storybook": "npm --prefix ksrtc-design-system run storybook",
+    "build-storybook": "npm --prefix ksrtc-design-system run build-storybook"
+  }
+}

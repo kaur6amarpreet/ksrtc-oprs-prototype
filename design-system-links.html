@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OPRS Design System — Links</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, 'Roboto', sans-serif;
+      background: #EEF2F9;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+      padding: 40px 36px;
+      max-width: 560px;
+      width: 100%;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .logo-badge {
+      background: #1A56A0;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1A1C1E;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: #49454E;
+      margin-bottom: 32px;
+    }
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #74777F;
+      margin-bottom: 10px;
+    }
+    .link-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .link-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #F4F6FB;
+      border-radius: 10px;
+      padding: 14px 16px;
+      text-decoration: none;
+      border: 1.5px solid transparent;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .link-row:hover {
+      border-color: #1A56A0;
+      background: #EEF2F9;
+    }
+    .link-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 18px;
+    }
+    .icon-local    { background: #D6E4FF; }
+    .icon-live     { background: #D6E4FF; }
+    .icon-github   { background: #1A1C1E; color: #fff; }
+    .icon-prototype{ background: #FFDBCA; }
+    .link-info { flex: 1; min-width: 0; }
+    .link-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1A1C1E;
+      margin-bottom: 2px;
+    }
+    .link-url {
+      font-size: 12px;
+      color: #49454E;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .link-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+    .badge-local  { background: #D6E4FF; color: #1A56A0; }
+    .badge-live   { background: #C8F0CB; color: #2E7D32; }
+    .badge-github { background: #F0E8FF; color: #6750A4; }
+    .divider {
+      border: none;
+      border-top: 1px solid #E8EAF0;
+      margin: 4px 0 24px;
+    }
+    .start-note {
+      background: #FFF8E1;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 12px;
+      color: #5D4037;
+      line-height: 1.6;
+    }
+    .start-note code {
+      background: rgba(0,0,0,0.08);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <div class="logo-badge">KSRTC · OPRS</div>
+    </div>
+    <h1>Design System</h1>
+    <p class="subtitle">OPRS component library — Storybook 8, React + Vite</p>
+
+    <div class="section-label">Local development</div>
+    <div class="link-group">
+      <a class="link-row" href="http://localhost:6006" target="_blank">
+        <div class="link-icon icon-local">💻</div>
+        <div class="link-info">
+          <div class="link-title">Local Storybook — Design System</div>
+          <div class="link-url">http://localhost:6006</div>
+        </div>
+        <span class="link-badge badge-local">Local</span>
+      </a>
+      <a class="link-row" href="ksrtc-prototype.html" target="_blank">
+        <div class="link-icon icon-prototype">🖥</div>
+        <div class="link-info">
+          <div class="link-title">OPRS Prototype</div>
+          <div class="link-url">ksrtc-prototype.html — open directly in Chrome</div>
+        </div>
+        <span class="link-badge" style="background:#FFDBCA;color:#D84315">Prototype</span>
+      </a>
+    </div>
+
+    <div class="section-label">Deployed</div>
+    <div class="link-group">
+      <a class="link-row" href="https://kaur6amarpreet-bot.github.io/oprs-design-system/" target="_blank">
+        <div class="link-icon icon-live">🌐</div>
+        <div class="link-info">
+          <div class="link-title">GitHub Pages — Live DS</div>
+          <div class="link-url">kaur6amarpreet-bot.github.io/oprs-design-system</div>
+        </div>
+        <span class="link-badge badge-live">Live</span>
+      </a>
+      <a class="link-row" href="https://github.com/kaur6amarpreet-bot/oprs-design-system" target="_blank">
+        <div class="link-icon icon-github">
+          <svg height="18" viewBox="0 0 16 16" width="18" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        </div>
+        <div class="link-info">
+          <div class="link-title">GitHub Repository</div>
+          <div class="link-url">github.com/kaur6amarpreet-bot/oprs-design-system</div>
+        </div>
+        <span class="link-badge badge-github">Repo</span>
+      </a>
+    </div>
+
+    <hr class="divider">
+
+    <div class="start-note">
+      <strong>To start local Storybook:</strong> open Terminal → go to
+      <code>ksrtc/</code> → run <code>npm run storybook</code>
+      <br><br>
+      <strong>Note:</strong> open this file directly in Chrome — links to localhost won't work inside Claude's preview panel.
+    </div>
+  </div>
+</body>
+</html>

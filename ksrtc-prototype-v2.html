@@ -1,0 +1,2152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KSRTC OPRS v2 — Advanced Ticket Booking</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231A56A0'/%3E%3Ctext x='16' y='23' text-anchor='middle' font-size='18' fill='white'%3E🚌%3C/text%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.4/styles/ag-grid.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.4/styles/ag-theme-alpine.css">
+<script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.4/dist/ag-grid-community.min.noStyle.js"></script>
+<!-- DS TOKEN SOURCE: oprs-design-system (GitHub CDN) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kaur6amarpreet-bot/oprs-design-system@main/tokens.css">
+<!-- DS COMPONENT SOURCE: oprs-design-system (GitHub CDN) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kaur6amarpreet-bot/oprs-design-system@main/components.css">
+<!-- DS SELECT + TEXTFIELD — single source of truth -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kaur6amarpreet-bot/oprs-design-system@main/src/components/Select/Select.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kaur6amarpreet-bot/oprs-design-system@main/src/components/TextField/TextField.css">
+<style>
+/* ═══════════════════════════════════════════════
+   V2 BRIDGE — maps v1 token names → DS token names
+   so all existing JS/CSS still resolves correctly
+═══════════════════════════════════════════════ */
+:root {
+  --primary:            var(--color-primary);
+  --on-primary:         var(--color-on-primary);
+  --primary-container:  var(--color-primary-container);
+  --on-primary-container: var(--color-on-primary-container);
+  --secondary:          var(--color-secondary);
+  --on-secondary:       var(--color-on-secondary);
+  --secondary-container:var(--color-secondary-container);
+  --on-secondary-container: var(--color-on-secondary-container);
+  --success:            var(--color-tertiary);
+  --on-success:         var(--color-on-tertiary);
+  --success-container:  var(--color-tertiary-container);
+  --on-success-container: var(--color-on-tertiary-container);
+  --error:              var(--color-error);
+  --on-error:           var(--color-on-error);
+  --error-container:    var(--color-error-container);
+  --surface:            var(--color-surface);
+  --surface-1:          var(--color-surface-container-low);
+  --surface-2:          var(--color-surface-container);
+  --on-surface:         var(--color-on-surface);
+  --on-surface-variant: var(--color-on-surface-variant);
+  --surface-variant:    var(--color-surface-variant);
+  --background:         var(--color-background);
+  --outline:            var(--color-outline);
+  --outline-variant:    var(--color-outline-variant);
+  --elev1:              var(--elevation-1);
+  --elev2:              var(--elevation-2);
+  --elev3:              var(--elevation-3);
+  --r-xs:  var(--shape-extra-sm);
+  --r-sm:  var(--shape-sm);
+  --r-md:  var(--shape-md);
+  --r-lg:  var(--shape-lg);
+  --r-xl:  var(--shape-xl);
+  --r-full:var(--shape-full);
+  --sp-1:  var(--space-1);
+  --sp-2:  var(--space-2);
+  --sp-3:  var(--space-3);
+  --sp-4:  var(--space-4);
+  --sp-5:  var(--space-5);
+  --sp-6:  var(--space-6);
+  --sp-8:  var(--space-8);
+  --sp-10: var(--space-10);
+  --sp-12: var(--space-12);
+}
+
+/* ═══════════════════════════════════════════════
+   BASE
+═══════════════════════════════════════════════ */
+html,body{width:100%;min-height:100%;}
+body{font-family:'Roboto',sans-serif;font-size:14px;background:var(--color-background);color:var(--color-on-surface);}
+.msym{font-family:'Material Symbols Outlined';font-size:20px;vertical-align:middle;line-height:1;user-select:none;}
+
+/* ═══════════════════════════════════════════════
+   TOP APP BAR (overrides DS top-app-bar)
+═══════════════════════════════════════════════ */
+.top-bar{background:var(--color-primary);color:var(--color-on-primary);height:56px;display:flex;align-items:center;padding:0 16px;gap:12px;box-shadow:var(--elevation-2);position:sticky;top:0;z-index:100;}
+.top-bar .brand{display:flex;align-items:center;gap:8px;}
+.top-bar .brand-icon{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.top-bar .brand-text{font-size:13px;font-weight:500;}
+.top-bar .divider{width:1px;height:24px;background:rgba(255,255,255,.25);margin:0 4px;}
+.top-bar .welcome,.top-bar .clock{font-size:12px;opacity:.9;}
+.top-bar .spacer{flex:1;}
+.top-bar .counter-chip{font-size:11px;font-weight:500;background:rgba(255,255,255,.15);border-radius:9999px;padding:3px 10px;}
+.icon-btn{width:36px;height:36px;border:none;background:none;cursor:pointer;border-radius:50%;color:var(--color-on-primary);display:flex;align-items:center;justify-content:center;}
+.icon-btn:hover{background:rgba(255,255,255,.15);}
+.text-btn{background:none;border:1px solid rgba(255,255,255,.5);border-radius:9999px;color:var(--color-on-primary);font-size:12px;padding:4px 12px;cursor:pointer;}
+.text-btn:hover{background:rgba(255,255,255,.15);}
+
+/* ── Headline / Breadcrumb bar ── */
+.headline-bar{background:var(--color-primary-container);border-bottom:1px solid var(--color-outline-variant);padding:6px 20px;display:flex;align-items:center;}
+.breadcrumb{display:flex;align-items:center;gap:4px;font-size:12px;}
+.bc-home{background:none;border:none;cursor:pointer;color:var(--color-primary);font-size:12px;padding:2px 4px;}
+.bc-sep{font-family:'Material Symbols Outlined';font-size:16px;color:var(--color-on-surface-variant);}
+.bc-current{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--color-on-primary-container);}
+
+/* ═══════════════════════════════════════════════
+   SCREEN HOST
+═══════════════════════════════════════════════ */
+.screen{display:none;flex-direction:column;min-height:calc(100vh - 88px);}
+.screen.active{display:flex;}
+.main{padding:16px;display:flex;flex-direction:column;gap:16px;flex:1;}
+
+/* ═══════════════════════════════════════════════
+   NAV DRAWER
+═══════════════════════════════════════════════ */
+#nav-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s;}
+#nav-overlay.open{opacity:1;pointer-events:all;}
+#nav-drawer{position:fixed;left:0;top:0;bottom:0;width:300px;background:var(--color-surface);z-index:201;transform:translateX(-100%);transition:transform .3s var(--motion-easing-decelerate);overflow-y:auto;display:flex;flex-direction:column;box-shadow:var(--elevation-3);}
+#nav-drawer.open{transform:translateX(0);}
+.nav-header{background:var(--color-primary);color:var(--color-on-primary);padding:16px;display:flex;align-items:center;justify-content:space-between;}
+.nav-header h2{font-size:14px;font-weight:500;}
+#nav-body{flex:1;padding:8px 0;}
+.nav-rule{height:1px;background:var(--color-outline-variant);margin:4px 0;}
+.nav-group-trigger{width:100%;display:flex;align-items:center;gap:8px;padding:10px 16px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:500;color:var(--color-on-surface);}
+.nav-group-trigger:hover{background:var(--color-surface-container-low);}
+.nav-group-trigger.has-active{color:var(--color-primary);}
+.nav-group-icon{font-size:18px;color:var(--color-on-surface-variant);}
+.nav-group-trigger.has-active .nav-group-icon{color:var(--color-primary);}
+.nav-group-label{flex:1;text-align:left;}
+.nav-group-chevron{font-size:18px;color:var(--color-on-surface-variant);transition:transform .2s;}
+.nav-group-trigger.open .nav-group-chevron{transform:rotate(180deg);}
+.nav-group-items{display:none;flex-direction:column;}
+.nav-group-items.open{display:flex;}
+.nav-sub-item{padding:8px 16px 8px 44px;border:none;background:none;cursor:pointer;font-size:13px;color:var(--color-on-surface-variant);text-align:left;}
+.nav-sub-item:hover{background:var(--color-surface-container-low);color:var(--color-on-surface);}
+.nav-sub-item.active{color:var(--color-primary);font-weight:500;background:var(--color-primary-container);}
+
+/* ═══════════════════════════════════════════════
+   CARDS
+═══════════════════════════════════════════════ */
+.search-card,.results-card{background:var(--color-surface);border-radius:var(--shape-md);box-shadow:var(--elevation-1);padding:16px;}
+.card{background:var(--color-surface);border-radius:var(--shape-md);box-shadow:var(--elevation-1);overflow:hidden;}
+
+/* ═══════════════════════════════════════════════
+   SEGMENTED BUTTON
+═══════════════════════════════════════════════ */
+.seg-btn{display:inline-flex;border:1.5px solid var(--color-outline-variant);border-radius:var(--shape-full);overflow:hidden;}
+.seg-opt{padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;color:var(--color-on-surface-variant);background:none;border:none;border-right:1px solid var(--color-outline-variant);transition:background .15s,color .15s;}
+.seg-opt:last-child{border-right:none;}
+.seg-opt.active{background:var(--color-primary-container);color:var(--color-primary);font-weight:600;}
+.seg-opt:hover:not(.active){background:var(--color-surface-container-low);}
+
+/* ── Ticket stats ── */
+.ticket-info{display:flex;align-items:center;gap:12px;margin-left:auto;}
+.stat-item{display:flex;flex-direction:column;align-items:flex-end;}
+.stat-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--color-on-surface-variant);}
+.stat-val{font-size:14px;font-weight:700;color:var(--color-on-surface);}
+.stat-val.credit{color:var(--color-tertiary);}
+.stat-divider{width:1px;height:28px;background:var(--color-outline-variant);}
+.search-top{display:flex;align-items:center;gap:16px;margin-bottom:12px;flex-wrap:wrap;}
+
+/* ── Search fields ── */
+.search-fields{display:flex;align-items:flex-end;flex-wrap:wrap;gap:10px;}
+.search-fields>.ksrtc-select,.search-fields>.md3-dp{flex:1;min-width:140px;}
+
+/* ── Buttons (v2 uses DS + these overrides) ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:0 20px;border-radius:var(--shape-full);font-family:'Roboto',sans-serif;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:box-shadow .15s,background .15s;white-space:nowrap;user-select:none;text-decoration:none;}
+.btn .msym{font-size:18px;}
+.btn-orange{background:var(--color-secondary);color:var(--color-on-secondary);box-shadow:var(--elevation-1);}
+.btn-orange:hover{box-shadow:var(--elevation-2);background:#BF360C;}
+.btn-orange:active{box-shadow:none;}
+.btn-orange:disabled{opacity:.38;cursor:not-allowed;}
+.btn-tonal{background:var(--color-secondary-container);color:var(--color-on-secondary-container);box-shadow:var(--elevation-1);}
+.btn-tonal:hover{box-shadow:var(--elevation-2);}
+.btn-outlined{background:transparent;color:var(--color-secondary);border:1.5px solid var(--color-secondary);}
+.btn-outlined:hover{background:rgba(216,67,21,.06);}
+.btn-outlined.blue{color:var(--color-primary);border-color:var(--color-primary);}
+.btn-sm{height:32px;padding:0 12px;font-size:12px;}
+.swap-btn{width:36px;height:40px;border:1.5px solid var(--color-outline-variant);border-radius:50%;background:var(--color-surface);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0;}
+.swap-btn:hover{background:var(--color-surface-container-low);}
+.swap-btn .msym{font-size:18px;}
+
+/* ── Check field ── */
+.check-field{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;white-space:nowrap;color:var(--color-on-surface);padding:0 2px;align-self:flex-end;height:40px;}
+.check-field input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--color-primary);}
+
+/* ═══════════════════════════════════════════════
+   KSRTC-SELECT — panel visibility (DS handles all other styles)
+═══════════════════════════════════════════════ */
+.ksrtc-select__panel{display:none;}
+.ksrtc-select--open .ksrtc-select__panel{display:block;}
+/* DatePicker still uses md3-border-lbl internally */
+.md3-dp.open .md3-border-lbl{color:var(--color-primary);}
+.md3-dp.has-value .md3-border-lbl{color:var(--color-on-surface-variant);}
+.md3-border-lbl{position:absolute;left:12px;top:0;transform:translateY(-50%);font-size:11px;font-weight:500;letter-spacing:.1px;color:var(--color-on-surface-variant);background:var(--color-surface);padding:0 4px;line-height:1;pointer-events:none;z-index:1;white-space:nowrap;transition:color .15s;}
+
+/* ═══════════════════════════════════════════════
+   MD3 DATE PICKER
+═══════════════════════════════════════════════ */
+.md3-dp{position:relative;display:flex;flex-direction:column;}
+.dp-trigger{height:40px;border:1.5px solid var(--color-outline);border-radius:var(--shape-sm);background:var(--color-surface);display:flex;align-items:center;padding:0 10px;gap:6px;cursor:pointer;}
+.md3-dp.open .dp-trigger{border-color:var(--color-primary);}
+.dp-trigger-val{flex:1;font-size:14px;color:var(--color-on-surface);}
+.dp-cal-ico{font-size:18px;color:var(--color-on-surface-variant);flex-shrink:0;}
+.dp-panel{position:absolute;top:calc(100% + 2px);left:0;z-index:600;background:var(--color-surface);border-radius:var(--shape-md);box-shadow:0 2px 6px 2px rgba(0,0,0,.15),0 1px 2px rgba(0,0,0,.3);padding:8px 8px 12px;display:none;width:280px;}
+.dp-panel.open{display:block;}
+.dp-head{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 8px;}
+.dp-nav-btn{width:36px;height:36px;border:none;background:none;cursor:pointer;border-radius:50%;color:var(--color-on-surface-variant);display:flex;align-items:center;justify-content:center;}
+.dp-nav-btn:hover{background:rgba(0,0,0,.08);}
+.dp-month-lbl{font-size:14px;font-weight:500;color:var(--color-on-surface);border:none;background:none;cursor:pointer;padding:4px 8px;border-radius:var(--shape-sm);}
+.dp-month-lbl:hover{background:rgba(0,0,0,.08);}
+.dp-dow{display:grid;grid-template-columns:repeat(7,1fr);padding:0 4px 4px;}
+.dp-dow span{text-align:center;font-size:11px;font-weight:500;color:var(--color-on-surface-variant);padding:4px 0;}
+.dp-grid{display:grid;grid-template-columns:repeat(7,1fr);padding:0 4px;gap:1px;}
+.dp-day{aspect-ratio:1;border:none;background:none;cursor:pointer;border-radius:50%;font-size:12px;display:flex;align-items:center;justify-content:center;}
+.dp-day:hover:not(.sel){background:rgba(26,86,160,.08);}
+.dp-day.today{border:1.5px solid var(--color-primary);color:var(--color-primary);font-weight:600;}
+.dp-day.sel{background:var(--color-primary);color:#fff;font-weight:600;border:none;}
+.dp-empty{aspect-ratio:1;}
+.dp-month-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;}
+.dp-month-cell{border:none;background:none;cursor:pointer;border-radius:var(--shape-sm);padding:10px 4px;font-size:13px;font-weight:500;color:var(--color-on-surface);text-align:center;}
+.dp-month-cell:hover{background:rgba(0,0,0,.08);}
+.dp-month-cell.cur-mo{background:var(--color-primary);color:#fff;}
+.dp-month-cell.has-sel{outline:1.5px solid var(--color-primary);outline-offset:-1px;}
+.ksrtc-select__value:empty::before{content:'Select';color:var(--color-on-surface-variant);font-size:13px;}
+.dp-trigger-val:empty::before{content:'DD Mon YYYY';color:var(--color-outline-variant);font-size:13px;}
+
+/* ═══════════════════════════════════════════════
+   SECTION HEADER
+═══════════════════════════════════════════════ */
+.sec-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--color-outline-variant);}
+.sec-header h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#fff;}
+.sec-subheader{padding:8px 16px;background:var(--color-surface-container-low);font-size:12px;color:var(--color-on-surface-variant);}
+
+/* ═══════════════════════════════════════════════
+   CLASS TYPE FILTER
+═══════════════════════════════════════════════ */
+.ct-filter-wrap{position:relative;}
+.ct-filter-btn{display:flex;align-items:center;gap:4px;height:32px;padding:0 12px;border:1.5px solid rgba(255,255,255,.5);border-radius:var(--shape-full);background:transparent;cursor:pointer;font-size:12px;font-weight:500;color:#fff;}
+.ct-filter-btn:hover{background:rgba(255,255,255,.12);}
+.ct-filter-btn.open{border-color:#fff;color:#fff;}
+.ct-filter-panel{position:absolute;top:calc(100% + 4px);right:0;min-width:200px;background:var(--color-surface);border-radius:var(--shape-sm);box-shadow:var(--elevation-3);z-index:400;padding:8px 0;display:none;}
+.ct-filter-panel.open{display:block;}
+.ct-opt{padding:8px 16px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--color-on-surface);}
+.ct-opt:hover{background:var(--color-surface-container-low);}
+.ct-opt.checked::before{content:'✓';color:var(--color-primary);font-weight:700;width:16px;}
+.ct-opt:not(.checked)::before{content:'';width:16px;display:inline-block;}
+
+/* ═══════════════════════════════════════════════
+   AG GRID THEME
+═══════════════════════════════════════════════ */
+.ag-theme-ksrtc{--ag-header-background-color:var(--color-surface-container-high);--ag-header-foreground-color:var(--color-on-surface);--ag-row-hover-color:var(--color-surface-container-low);--ag-selected-row-background-color:var(--color-primary-container);--ag-font-family:'Roboto',sans-serif;--ag-font-size:13px;--ag-border-color:var(--color-outline-variant);--ag-row-border-color:var(--color-outline-variant);--ag-header-height:38px;--ag-row-height:42px;--ag-pagination-panel-height:44px;}
+.ag-theme-ksrtc .ag-header-cell-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.ag-theme-ksrtc .ag-pagination-button{border-radius:4px;}
+.ag-group-hdr{display:flex;align-items:center;gap:10px;padding:0 16px;height:36px;background:var(--color-primary-container);}
+.ag-group-name{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--color-on-primary-container);}
+.ag-group-tag{font-size:11px;color:var(--color-on-surface-variant);border:1px solid var(--color-outline-variant);border-radius:var(--shape-full);padding:1px 8px;background:var(--color-surface);}
+.ag-group-count{font-size:11px;color:var(--color-on-surface-variant);margin-left:auto;}
+.ag-group-header-row{background:var(--color-primary-container) !important;}
+.seat-chip{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:22px;border-radius:var(--shape-full);font-size:11px;font-weight:700;padding:0 6px;}
+.seat-chip.many{background:var(--color-tertiary-container);color:var(--color-on-tertiary-container);}
+.seat-chip.some{background:#FFF9C4;color:#F57F17;}
+.seat-chip.few{background:var(--color-error-container);color:var(--color-on-error-container);}
+.type-badge{background:var(--color-surface-container-high);border-radius:var(--shape-full);padding:2px 8px;font-size:11px;font-weight:500;}
+.cutoff-cell{display:inline-flex;align-items:center;gap:3px;font-size:12px;}
+.lnk-booked-badge{display:inline-flex;align-items:center;gap:3px;color:var(--color-tertiary);font-size:12px;font-weight:500;}
+.grid-scroll-wrap{overflow:visible;}
+
+/* ═══════════════════════════════════════════════
+   MD3 TEXT FIELD (contact row) — matches v1 exactly
+═══════════════════════════════════════════════ */
+/* TextField — DS ksrtc-field handles all styles via linked CSS */
+
+/* ═══════════════════════════════════════════════
+   SEAT PANEL — matches v1 exactly
+═══════════════════════════════════════════════ */
+.ag-seat-panel-wrap{display:none;}
+.ag-seat-panel-wrap.open{display:block;}
+.seat-panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.seat-map-col{padding:16px;border-right:1px solid var(--outline-variant);background:#fff;display:flex;flex-direction:column;align-items:center;}
+.seat-map-title{font-size:12px;font-weight:700;color:var(--on-surface-variant);letter-spacing:.4px;text-transform:uppercase;margin-bottom:12px;align-self:flex-start;}
+/* Bus container */
+.bus-container{background:var(--surface-1);border-radius:var(--r-md);padding:12px;border:1px solid var(--outline-variant);overflow-x:auto;}
+.bus-grid{display:grid;grid-template-columns:28px 1fr;column-gap:8px;align-items:start;row-gap:0;}
+.bg-left-empty{} .bg-row-gap{height:8px;}
+.bg-left-wheel{display:flex;align-items:center;justify-content:center;padding:3px 0;}
+.bg-left-label{font-size:8px;font-weight:700;color:var(--on-surface-variant);text-transform:uppercase;letter-spacing:.5px;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;align-self:stretch;display:flex;align-items:center;justify-content:center;}
+/* Berth grid */
+.berth-row{display:flex;flex-direction:row;align-items:flex-start;gap:4px;}
+.berth-col{display:flex;flex-direction:column;gap:4px;}
+.berth-gap{width:10px;flex-shrink:0;}
+.berth-gap-sm{width:4px;flex-shrink:0;}
+/* Seat cells — v1 exact sizing + colors */
+.seat{position:relative;width:26px;height:26px;background:#fff;border:1.5px solid transparent;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;cursor:pointer;transition:transform .1s,box-shadow .1s;user-select:none;flex-shrink:0;overflow:hidden;}
+.seat::before,.seat::after{display:none!important;}
+.seat:hover:not(.blocked):not(.conductor):not(.empty){transform:scale(1.05);box-shadow:var(--elev1);}
+.seat.available{background:#fff;color:#2E7D32;border-color:#A5D6A7;}
+.seat.selected{background:#2E7D32;color:#fff;border-color:#1B5E20;}
+.seat.selected.ladies{background:#C2185B;color:#fff;border-color:#880E4F;}
+.seat.selected.quota{background:#5C6BC0;color:#fff;border-color:#3949AB;}
+.seat.ladies{background:#fff;color:#C2185B;border-color:#F48FB1;}
+.seat.blocked{background:#F5F5F5;color:#90A4AE;border-color:#B0BEC5;cursor:not-allowed;opacity:.55;}
+.seat.conductor{background:#fff;color:#E64A19;border-color:#FFCCBC;cursor:default;}
+.seat.quota{background:#fff;color:#5C6BC0;border-color:#C5CAE9;}
+.seat.empty{visibility:hidden;cursor:default;}
+/* Legend */
+.seat-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center;}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--on-surface-variant);}
+.leg-dot{width:12px;height:12px;border-radius:50%;border:2px solid transparent;flex-shrink:0;}
+/* Boarding col */
+.boarding-col{padding:16px;display:flex;flex-direction:column;gap:16px;}
+.boarding-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.field-label{font-size:12px;font-weight:500;color:var(--primary);letter-spacing:.1px;margin-bottom:4px;}
+.addr-text{font-size:11px;color:var(--on-surface-variant);margin-top:4px;line-height:1.4;}
+.select-outlined{width:100%;border:1.5px solid var(--outline);border-radius:var(--r-xs);padding:0 34px 0 12px;font-family:'Roboto',sans-serif;font-size:13px;color:var(--on-surface);background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'%3E%3Cpath fill='%2374777F' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 10px center;height:40px;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;}
+.select-outlined:focus{border-color:var(--primary);}
+/* Pax section */
+.pax-section{padding:16px 20px;border-top:1px solid var(--outline-variant);background:#fff;}
+.pax-section h3{font-size:13px;font-weight:700;color:var(--primary);letter-spacing:.4px;text-transform:uppercase;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--outline-variant);}
+.contact-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px;}
+.pax-table-wrap{overflow-x:auto;margin-bottom:12px;}
+.pax-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;}
+.pax-table th{background:var(--surface-2);color:var(--on-surface-variant);font-weight:600;font-size:11px;letter-spacing:.4px;text-transform:uppercase;padding:6px 8px 4px;text-align:left;white-space:nowrap;}
+.pax-table tbody tr{border-bottom:1px solid var(--outline-variant);}
+.pax-table tbody tr:hover{background:var(--surface-1);}
+.pax-table td{padding:6px 8px;border-bottom:1px solid var(--outline-variant);vertical-align:middle;}
+.pax-table input,.pax-table select{width:100%;padding:0 8px;border:1.5px solid var(--outline);border-radius:var(--r-xs);font-family:'Roboto',sans-serif;font-size:12px;color:var(--on-surface);background:var(--surface);outline:none;height:32px;appearance:none;-webkit-appearance:none;}
+.pax-table select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%2374777F' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:24px;cursor:pointer;}
+.pax-table input:focus,.pax-table select:focus{border-color:var(--primary);box-shadow:inset 0 0 0 .75px var(--primary);}
+/* Fare row */
+.fare-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.ticket-stub{background:#fff;border:1.5px dashed #bdbdbd;border-radius:var(--r-md);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:8px;text-align:center;}
+.stub-label{font-size:10px;font-weight:700;color:var(--on-surface-variant);letter-spacing:.6px;text-transform:uppercase;}
+.stub-num{font-size:26px;font-weight:700;color:var(--success);letter-spacing:2px;}
+.fare-card{border:1px solid var(--outline-variant);border-radius:var(--r-md);overflow:hidden;}
+.fare-line{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;font-size:12px;border-bottom:1px solid var(--outline-variant);}
+.fare-line:last-child{border-bottom:none;}
+.fare-line .fl-label{color:var(--on-surface-variant);}
+.fare-line .fl-val{font-weight:500;}
+.fare-line.total{background:var(--surface-2);font-weight:600;}
+.fare-line.balance{background:var(--success);color:#fff;}
+.fare-line.balance .fl-label,.fare-line.balance .fl-val{color:#fff;font-weight:700;font-size:13px;}
+/* Action bar */
+.action-bar{display:flex;justify-content:flex-end;gap:12px;padding:16px 20px;border-top:1px solid var(--outline-variant);background:#fff;}
+.action-bar.has-payment{justify-content:space-between;align-items:flex-end;flex-wrap:wrap;}
+.action-bar .payment-fields{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;}
+.action-bar .pay-field{display:flex;flex-direction:column;gap:3px;}
+.action-bar .pay-field label{font-size:11px;font-weight:500;color:var(--on-surface-variant);white-space:nowrap;}
+.action-bar .pay-field .ksrtc-select{min-width:160px;}
+.action-bar .pay-field .ksrtc-select__trigger{height:36px;font-size:13px;padding:0 8px 0 10px;}
+.action-bar .pay-field input[type="text"]{height:36px;border:1.5px solid var(--outline-variant);border-radius:var(--r-xs);padding:0 10px;font-size:13px;font-family:'Roboto',sans-serif;outline:none;min-width:140px;}
+.action-bar .pay-field input[type="text"]:focus{border-color:var(--primary);}
+.action-bar .action-btns{display:flex;gap:12px;align-items:center;flex-shrink:0;}
+/* Block-specific */
+.block-field{display:flex;flex-direction:column;gap:4px;}
+
+/* ═══════════════════════════════════════════════
+   EMPTY STATE
+═══════════════════════════════════════════════ */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;gap:12px;text-align:center;}
+.empty-state>.msym{font-size:56px;color:var(--color-outline-variant);}
+.empty-state p{font-size:14px;color:var(--color-on-surface-variant);max-width:360px;}
+
+/* ═══════════════════════════════════════════════
+   SKELETON LOADING
+═══════════════════════════════════════════════ */
+.skeleton-overlay{padding:12px;}
+@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+.skeleton-row{display:flex;gap:8px;margin-bottom:8px;}
+.skeleton-cell{height:32px;flex:1;border-radius:4px;background:linear-gradient(90deg,#e8edf3 25%,#f0f4f9 50%,#e8edf3 75%);background-size:800px 100%;animation:shimmer 1.4s infinite;}
+
+/* ═══════════════════════════════════════════════
+   TOAST / SNACKBAR
+═══════════════════════════════════════════════ */
+#toast-portal{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:center;}
+.toast{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:var(--shape-md);box-shadow:var(--elevation-3);font-size:13px;font-weight:500;min-width:280px;max-width:480px;animation:toast-in .25s ease;background:var(--color-inverse-surface);color:var(--color-inverse-on-surface);}
+.toast.success{background:var(--color-tertiary);color:var(--color-on-tertiary);}
+.toast.error{background:var(--color-error);color:var(--color-on-error);}
+.toast.warning{background:#E65100;color:#fff;}
+.toast.success-rich{background:var(--color-surface);color:var(--color-on-surface);border-left:4px solid var(--color-tertiary);}
+.sr-icon{width:28px;height:28px;border-radius:50%;background:var(--color-tertiary-container);color:var(--color-tertiary);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sr-body{display:flex;flex-direction:column;gap:2px;}
+.sr-title{font-size:13px;font-weight:700;color:var(--color-on-surface);}
+.sr-msg{font-size:12px;color:var(--color-on-surface-variant);}
+@keyframes toast-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════════════════════════════════════════════
+   DIALOG / MODAL
+═══════════════════════════════════════════════ */
+.dialog-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity .2s;}
+.dialog-backdrop.open{opacity:1;pointer-events:all;}
+.dialog{background:var(--color-surface);border-radius:var(--shape-xl);padding:24px;max-width:420px;width:90%;box-shadow:var(--elevation-3);animation:dialog-in .25s var(--motion-easing-decelerate);}
+@keyframes dialog-in{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+.dialog-icon{width:52px;height:52px;border-radius:50%;background:var(--color-tertiary-container);color:var(--color-tertiary);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;}
+.dialog-icon .msym{font-size:28px;}
+.dialog h2{text-align:center;font-size:20px;font-weight:500;margin-bottom:8px;}
+.dialog p{text-align:center;font-size:13px;color:var(--color-on-surface-variant);margin-bottom:16px;}
+.dialog-actions{display:flex;gap:8px;justify-content:flex-end;}
+.confirm-num{font-size:18px;font-weight:700;color:var(--color-primary);letter-spacing:2px;text-align:center;padding:8px;background:var(--color-primary-container);border-radius:var(--shape-sm);margin-bottom:12px;}
+
+/* ═══════════════════════════════════════════════
+   SUCCESS MODAL
+═══════════════════════════════════════════════ */
+#success-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:1001;opacity:0;pointer-events:none;transition:opacity .2s;}
+#success-modal-backdrop.open{opacity:1;pointer-events:all;}
+#success-modal{background:var(--color-surface);border-radius:var(--shape-xl);padding:32px 24px;max-width:360px;width:90%;box-shadow:var(--elevation-5);text-align:center;}
+.success-icon{width:64px;height:64px;border-radius:50%;background:var(--color-tertiary-container);color:var(--color-tertiary);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.success-icon .msym{font-size:36px;}
+
+/* ═══════════════════════════════════════════════
+   TICKET SCREEN
+═══════════════════════════════════════════════ */
+.tkt-actions{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;background:var(--color-surface-container-low);border-bottom:1px solid var(--color-outline-variant);}
+.tkt-card{border-radius:var(--shape-lg);overflow:hidden;box-shadow:var(--elevation-2);}
+.tkt-header{background:var(--color-primary);color:var(--color-on-primary);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;}
+.tkt-ref{font-size:12px;opacity:.85;}
+.tkt-title{text-align:center;padding:12px;border-bottom:1px dashed var(--color-outline-variant);background:var(--color-surface-container-low);}
+.tkt-title h2{font-size:13px;font-weight:700;color:var(--color-primary);text-transform:uppercase;letter-spacing:1px;}
+.tkt-body{padding:16px 24px;background:var(--color-surface);}
+.tkt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.tf{display:flex;flex-direction:column;gap:2px;}
+.tf-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--color-on-surface-variant);}
+.tf-val{font-size:13px;font-weight:500;color:var(--color-on-surface);}
+.tkt-pax{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px;}
+.tkt-pax th{background:var(--color-surface-container-high);padding:6px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--color-on-surface-variant);border-bottom:2px solid var(--color-outline-variant);}
+.tkt-pax td{padding:6px 10px;border-bottom:1px solid var(--color-outline-variant);}
+.tkt-footer{background:var(--color-surface-variant);padding:10px 24px;text-align:center;font-size:11px;color:var(--color-on-surface-variant);}
+.tkt-fine{word-break:break-all;}
+
+/* ═══════════════════════════════════════════════
+   VALIDATION STATES
+═══════════════════════════════════════════════ */
+.field-error .ksrtc-select__trigger,.field-error .dp-trigger{border-color:var(--color-error) !important;}
+.field-error .ksrtc-select__label,.field-error .ksrtc-field--outlined .ksrtc-field__label{color:var(--color-error) !important;}
+.error-msg{font-size:11px;color:var(--color-error);margin-top:2px;display:none;}
+.field-error .error-msg{display:block;}
+
+/* ═══════════════════════════════════════════════
+   RESULT WRAPPERS (hidden until search)
+═══════════════════════════════════════════════ */
+#results-wrap{display:none;flex-direction:column;gap:12px;}
+#cur-results-wrap,#blk-results-wrap,#unblk-results-wrap,#link-results-wrap{display:none;}
+.results-card{display:flex;flex-direction:column;overflow:visible;}
+
+/* ═══════════════════════════════════════════════
+   BOARDING / DROPPING SECTION
+═══════════════════════════════════════════════ */
+.boarding-section{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.boarding-field{display:flex;flex-direction:column;gap:4px;}
+.boarding-field label{font-size:11px;font-weight:500;color:var(--color-on-surface-variant);}
+.board-addr{font-size:11px;color:var(--color-on-surface-variant);min-height:14px;}
+
+/* Link ticket specific */
+.link-section-hdr{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--color-on-surface-variant);padding:8px 0;border-bottom:1px solid var(--color-outline-variant);margin-bottom:8px;}
+
+@media print{.top-bar,.headline-bar,.tkt-actions,#nav-drawer,#nav-overlay{display:none !important;}body{background:#fff;}.tkt-card{box-shadow:none;border:1px solid #ccc;}}
+</style>
+</head>
+<body>
+
+<a class="skip-to-main" href="#main" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">Skip to main content</a>
+
+<!-- NAV OVERLAY -->
+<div id="nav-overlay" onclick="closeNav()" aria-hidden="true"></div>
+
+<!-- NAV DRAWER -->
+<div id="nav-drawer" role="navigation" aria-label="Main navigation">
+  <div class="nav-header">
+    <h2>OPRS Navigation</h2>
+    <button class="icon-btn" onclick="closeNav()" aria-label="Close navigation"><span class="msym">close</span></button>
+  </div>
+  <div id="nav-body"></div>
+</div>
+
+<!-- ═══════════════════════ SCREEN 1 — ADVANCED TICKET BOOKING ═══════════════════════ -->
+<div id="screen-search" class="screen">
+  <header class="top-bar" role="banner">
+    <button class="icon-btn" onclick="openNav()" aria-label="Open menu"><span class="msym">menu</span></button>
+    <div class="brand"><div class="brand-icon"><span class="msym">directions_bus</span></div><div class="brand-text">Karnataka State Road Transport Corporation</div></div>
+    <div class="divider"></div>
+    <span class="welcome">Welcome | Manish Manohar</span>
+    <span class="clock" id="clock"></span>
+    <div class="spacer"></div>
+    <span class="counter-chip">Counter Code: KBSC2</span>
+    <button class="text-btn">Logout</button>
+  </header>
+  <div class="headline-bar">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <button class="bc-home" onclick="navGo('Advance Ticket Booking')">Booking</button>
+      <span class="bc-sep" aria-hidden="true">chevron_right</span>
+      <span class="bc-current"><span class="msym">confirmation_number</span>Advanced Ticket Booking</span>
+    </nav>
+  </div>
+  <main id="main" class="main">
+    <!-- Search Card -->
+    <div class="search-card">
+      <div class="search-top">
+        <div class="seg-btn" id="trip-btn" role="group" aria-label="Trip type">
+          <button class="seg-opt active" onclick="setTrip(this)">One-Way</button>
+          <button class="seg-opt" onclick="setTrip(this)">Return Trip</button>
+          <button class="seg-opt" onclick="setTrip(this)">Trip Number</button>
+        </div>
+        <div class="ticket-info">
+          <div class="stat-item"><span class="stat-lbl">Ticket No.</span><span class="stat-val">51046794</span></div>
+          <div class="stat-divider"></div>
+          <div class="stat-item"><span class="stat-lbl">Available Credit</span><span class="stat-val credit">₹ 50,856.00</span></div>
+        </div>
+      </div>
+      <div class="search-fields">
+        <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value="" id="src-menu">
+          <div class="ksrtc-select__anchor">
+            <span class="ksrtc-select__label">Source *</span>
+            <button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)" aria-label="Select source">
+              <span class="ksrtc-select__value ksrtc-select__placeholder"></span>
+              <span class="ksrtc-select__chevron material-symbols-outlined" aria-hidden="true">expand_more</span>
+            </button>
+            <div class="ksrtc-select__panel" role="listbox">
+              <div class="ksrtc-select__option" role="option" onclick="md3Pick(this)">Bengaluru</div>
+              <div class="ksrtc-select__option" role="option" onclick="md3Pick(this)">Mysuru</div>
+              <div class="ksrtc-select__option" role="option" onclick="md3Pick(this)">Hubli</div>
+              <div class="ksrtc-select__option" role="option" onclick="md3Pick(this)">Mangaluru</div>
+            </div>
+          </div>
+        </div>
+        <button class="swap-btn" title="Swap source and destination" onclick="swapSourceDest(this)" aria-label="Swap source and destination"><span class="msym">swap_horiz</span></button>
+        <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value="" id="dst-menu">
+          <div class="ksrtc-select__anchor">
+            <span class="ksrtc-select__label">Destination *</span>
+            <button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)" aria-label="Select destination">
+              <span class="ksrtc-select__value ksrtc-select__placeholder"></span>
+              <span class="ksrtc-select__chevron material-symbols-outlined" aria-hidden="true">expand_more</span>
+            </button>
+            <div class="ksrtc-select__panel" role="listbox">
+              <div class="ksrtc-select__option" role="option" onclick="md3Pick(this)">Mysuru</div>
+              <div class="ksrtc-select__option" role="option" onclick="md3Pick(this)">Bengaluru</div>
+              <div class="ksrtc-select__option" role="option" onclick="md3Pick(this)">Hassan</div>
+              <div class="ksrtc-select__option" role="option" onclick="md3Pick(this)">Mangaluru</div>
+            </div>
+          </div>
+        </div>
+        <div class="md3-dp" id="dp-journey">
+          <label class="md3-border-lbl">Journey Date *</label>
+          <div class="dp-trigger" onclick="dpToggle('dp-journey')" role="button" tabindex="0">
+            <span class="dp-trigger-val" id="dp-journey-val"></span><span class="msym dp-cal-ico" aria-hidden="true">calendar_month</span>
+          </div>
+          <div class="dp-panel" id="dp-journey-panel" role="dialog" aria-label="Journey date picker">
+            <div class="dp-head">
+              <button class="dp-nav-btn" type="button" onclick="dpNav('dp-journey',-1);event.stopPropagation()" aria-label="Previous"><span class="msym">chevron_left</span></button>
+              <button class="dp-month-lbl" type="button" id="dp-journey-lbl" onclick="dpToggleMode('dp-journey');event.stopPropagation()"></button>
+              <button class="dp-nav-btn" type="button" onclick="dpNav('dp-journey',1);event.stopPropagation()" aria-label="Next"><span class="msym">chevron_right</span></button>
+            </div>
+            <div class="dp-dow" aria-hidden="true"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
+            <div class="dp-grid" id="dp-journey-grid" role="grid"></div>
+          </div>
+        </div>
+        <div class="md3-dp" id="dp-return" style="display:none">
+          <label class="md3-border-lbl">Date of Return</label>
+          <div class="dp-trigger" onclick="dpToggle('dp-return')">
+            <span class="dp-trigger-val" id="dp-return-val"></span><span class="msym dp-cal-ico">calendar_month</span>
+          </div>
+          <div class="dp-panel" id="dp-return-panel">
+            <div class="dp-head">
+              <button class="dp-nav-btn" type="button" onclick="dpNav('dp-return',-1);event.stopPropagation()"><span class="msym">chevron_left</span></button>
+              <button class="dp-month-lbl" type="button" id="dp-return-lbl" onclick="dpToggleMode('dp-return');event.stopPropagation()"></button>
+              <button class="dp-nav-btn" type="button" onclick="dpNav('dp-return',1);event.stopPropagation()"><span class="msym">chevron_right</span></button>
+            </div>
+            <div class="dp-dow"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
+            <div class="dp-grid" id="dp-return-grid"></div>
+          </div>
+        </div>
+        <div class="md3-dp" id="trip-num-wrap" style="display:none">
+          <label class="md3-border-lbl">Trip Number *</label>
+          <div class="dp-trigger" style="cursor:text">
+            <input type="text" id="inp-trip-num" placeholder="e.g. 2100BNGMYS" autocomplete="off" style="border:none;outline:none;background:transparent;font-size:14px;font-family:'Roboto',sans-serif;width:100%;color:var(--color-on-surface);">
+            <span class="msym dp-cal-ico">confirmation_number</span>
+          </div>
+        </div>
+        <label class="check-field" id="single-lady-field"><input type="checkbox"> Single Lady</label>
+        <button class="btn btn-orange" onclick="doSearch()"><span class="msym">search</span>Search</button>
+        <button class="btn btn-outlined" onclick="doReset()"><span class="msym">refresh</span>Reset</button>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="card" id="empty-state">
+      <div class="empty-state"><span class="msym">description</span><p>Report Will Display Here</p></div>
+    </div>
+
+    <!-- Results -->
+    <div id="results-wrap">
+      <!-- Onward card -->
+      <div class="results-card card" id="onward-card">
+        <div class="sec-header">
+          <h2>Onward Journey</h2>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div class="ct-filter-wrap" id="ct-filter-onward">
+              <button class="ct-filter-btn" onclick="toggleCtFilter('ct-filter-onward')" id="ct-filter-onward-label"><span class="msym" style="font-size:16px">filter_list</span>Class Filter</button>
+              <div class="ct-filter-panel">
+                <div class="ct-opt checked" data-val="AMBAARI UTSAV" onclick="toggleCtOpt(this,'ct-filter-onward','ag-onward')">Ambaari Utsav</div>
+                <div class="ct-opt checked" data-val="AMBAARI DREEM CLASS" onclick="toggleCtOpt(this,'ct-filter-onward','ag-onward')">Ambaari Dreem Class</div>
+                <div class="ct-opt checked" data-val="RAJAHAMSA" onclick="toggleCtOpt(this,'ct-filter-onward','ag-onward')">Rajahamsa</div>
+                <div class="ct-opt checked" data-val="AIRAVAT CLUB CLASS" onclick="toggleCtOpt(this,'ct-filter-onward','ag-onward')">Airavat Club Class</div>
+                <div class="ct-opt checked" data-val="AIRAVAT GOLD CLASS" onclick="toggleCtOpt(this,'ct-filter-onward','ag-onward')">Airavat Gold Class</div>
+                <div class="ct-opt checked" data-val="NON AC SLEEPER" onclick="toggleCtOpt(this,'ct-filter-onward','ag-onward')">Non AC Sleeper</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sec-subheader"><span id="onward-sub-text">Select a bus for your journey</span></div>
+        <div class="grid-scroll-wrap"><div id="ag-onward" class="ag-theme-alpine ag-theme-ksrtc" style="width:100%;"></div></div>
+      </div>
+      <!-- Return card (hidden by default) -->
+      <div class="results-card card" id="return-card" style="display:none">
+        <div class="sec-header"><h2>Return Journey</h2></div>
+        <div class="sec-subheader"><span>Select a return bus</span></div>
+        <div class="grid-scroll-wrap"><div id="ag-return" class="ag-theme-alpine ag-theme-ksrtc" style="width:100%;"></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- SEAT PANEL (out-of-flow, moved into ag-Grid detail row) -->
+<div id="seat-panel-wrap" class="ag-seat-panel-wrap">
+  <div id="seat-panel">
+    <!-- Row 1: seat map left | boarding/dropping right -->
+    <div class="seat-panel-grid">
+      <div class="seat-map-col">
+        <span class="seat-map-title">Select Seats</span>
+        <div class="bus-container">
+          <div class="bus-grid">
+            <div class="bg-left-wheel"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="10" stroke="#455A64" stroke-width="1.5" fill="#fff"/><circle cx="11" cy="11" r="3.5" stroke="#455A64" stroke-width="1.5" fill="#fff"/><line x1="11" y1="7.5" x2="11" y2="1.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/><line x1="14.8" y1="13.5" x2="19.8" y2="16.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/><line x1="7.2" y1="13.5" x2="2.2" y2="16.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+            <div class="berth-row" id="upper-grid"></div>
+            <div class="bg-row-gap"></div><div class="bg-row-gap"></div>
+            <div class="bg-left-label">Lower</div>
+            <div class="berth-row" id="lower-grid"></div>
+          </div>
+        </div>
+        <div class="seat-legend">
+          <div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#A5D6A7;"></div>Available</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#2E7D32;border-color:#1B5E20;"></div>Selected</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#F48FB1;color:#C2185B;"></div>Ladies</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#F5F5F5;border-color:#B0BEC5;opacity:.55;"></div>Blocked</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#FFCCBC;"></div>Conductor</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#C5CAE9;"></div>Quota</div>
+        </div>
+      </div>
+      <div class="boarding-col">
+        <div>
+          <div class="field-label">Boarding Point</div>
+          <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value="" data-addr-target="board-addr">
+            <div class="ksrtc-select__anchor">
+              <span class="ksrtc-select__label">Select Boarding Point</span>
+              <button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button>
+              <div class="ksrtc-select__panel">
+                <div class="ksrtc-select__option" onclick="md3Pick(this)" data-addr="Platform 7, Bay 14">Bengaluru (Kempegowda BS)</div>
+                <div class="ksrtc-select__option" onclick="md3Pick(this)" data-addr="Platform 2, Bay 6">Bengaluru (Shivajinagar)</div>
+                <div class="ksrtc-select__option" onclick="md3Pick(this)" data-addr="Bay 11, Gate C">Bengaluru (Majestic)</div>
+              </div>
+            </div>
+          </div>
+          <div class="addr-text" id="board-addr">Platform 7, Bay 14</div>
+        </div>
+        <div>
+          <div class="field-label">Dropping Point</div>
+          <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value="" data-addr-target="drop-addr">
+            <div class="ksrtc-select__anchor">
+              <span class="ksrtc-select__label">Select Dropping Point</span>
+              <button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button>
+              <div class="ksrtc-select__panel">
+                <div class="ksrtc-select__option" onclick="md3Pick(this)" data-addr="Main Platform, Bay 3">Mysuru (Central BS)</div>
+                <div class="ksrtc-select__option" onclick="md3Pick(this)" data-addr="Platform 1, Bay 9">Mysuru (Bannimantap)</div>
+              </div>
+            </div>
+          </div>
+          <div class="addr-text" id="drop-addr">Main Platform, Bay 3</div>
+        </div>
+      </div>
+    </div>
+    <!-- Row 2: passenger contact + pax table + fare -->
+    <div class="pax-section">
+      <h3>Passenger Details</h3>
+      <div class="contact-row">
+        <div class="ksrtc-field ksrtc-field--outlined ksrtc-field--md"><div class="ksrtc-field__wrap"><span class="ksrtc-field__label">Mobile Number *</span><input class="ksrtc-field__input" type="tel" id="pax-mobile" placeholder="10-digit mobile"></div></div>
+        <div class="ksrtc-field ksrtc-field--outlined ksrtc-field--md"><div class="ksrtc-field__wrap"><span class="ksrtc-field__label">Email Address</span><input class="ksrtc-field__input" type="email" id="pax-email" placeholder="email@example.com"></div></div>
+        <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">ID Type</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Aadhaar</div><div class="ksrtc-select__option" onclick="md3Pick(this)">PAN</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Passport</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Voter ID</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Driving Licence</div></div></div></div>
+        <div class="ksrtc-field ksrtc-field--outlined ksrtc-field--md"><div class="ksrtc-field__wrap"><span class="ksrtc-field__label">ID Number</span><input class="ksrtc-field__input" type="text" id="pax-idnum" placeholder="Enter ID number"></div></div>
+      </div>
+      <div class="pax-table-wrap">
+        <table class="pax-table"><thead><tr><th>Seat</th><th>Name</th><th>Gender</th><th>Age</th><th>Concession</th><th>Nationality</th><th>Fare</th></tr></thead><tbody id="pax-rows"></tbody></table>
+      </div>
+      <div class="fare-row">
+        <div class="ticket-stub"><div class="stub-label">Ticket No.</div><div class="stub-num">51046794</div></div>
+        <div class="fare-card" id="fare-card"><div class="fare-line"><span class="fl-label">Select seats to see fare</span></div></div>
+      </div>
+    </div>
+    <!-- Row 3: payment + actions -->
+    <div class="action-bar has-payment">
+      <div class="payment-fields">
+        <div class="pay-field">
+          <label>Payment Mode *</label>
+          <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value="" id="pay-mode-menu">
+            <div class="ksrtc-select__anchor">
+              <span class="ksrtc-select__label">Payment Mode</span>
+              <button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder">Select Mode</span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button>
+              <div class="ksrtc-select__panel">
+                <div class="ksrtc-select__option" onclick="payModePick(this);md3Pick(this)" data-value="CASH">Cash</div>
+                <div class="ksrtc-select__option" onclick="payModePick(this);md3Pick(this)" data-value="UPI">UPI</div>
+                <div class="ksrtc-select__option" onclick="payModePick(this);md3Pick(this)" data-value="CARD">Card</div>
+                <div class="ksrtc-select__option" onclick="payModePick(this);md3Pick(this)" data-value="NET_BANKING">Net Banking</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="pay-field" id="pay-ref-wrap" style="display:none">
+          <label>Transaction Ref #</label>
+          <input type="text" id="pay-ref" placeholder="Enter reference number">
+        </div>
+      </div>
+      <div class="action-btns">
+        <button class="btn btn-outlined" onclick="closeSeatPanel()"><span class="msym">close</span>Cancel</button>
+        <button class="btn btn-outlined" onclick="clearSeatSelection('main','pax-rows','fare-card')"><span class="msym">restart_alt</span>Clear</button>
+        <button class="btn btn-orange" onclick="generateTicket()"><span class="msym">confirmation_number</span>Book &amp; Print</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ SCREEN 2 — CURRENT BOOKING ═══════════════════════ -->
+<div id="screen-current-booking" class="screen">
+  <header class="top-bar"><button class="icon-btn" onclick="openNav()"><span class="msym">menu</span></button><div class="brand"><div class="brand-icon"><span class="msym">directions_bus</span></div><div class="brand-text">Karnataka State Road Transport Corporation</div></div><div class="divider"></div><span class="welcome">Welcome | Manish Manohar</span><span class="clock"></span><div class="spacer"></div><span class="counter-chip">Counter Code: KBSC2</span><button class="text-btn">Logout</button></header>
+  <div class="headline-bar"><nav class="breadcrumb"><button class="bc-home" onclick="navGo('Advance Ticket Booking')">Booking</button><span class="bc-sep">chevron_right</span><span class="bc-current"><span class="msym">event_available</span>Current Booking</span></nav></div>
+  <main class="main">
+    <div class="search-card">
+      <div class="search-top">
+        <div class="seg-btn" id="cur-trip-btn"><button class="seg-opt active" onclick="setTrip(this)">One-Way</button><button class="seg-opt" onclick="setTrip(this)">Return Trip</button><button class="seg-opt" onclick="setTrip(this)">Trip Number</button></div>
+        <div class="ticket-info"><div class="stat-item"><span class="stat-lbl">Ticket No.</span><span class="stat-val">51046794</span></div><div class="stat-divider"></div><div class="stat-item"><span class="stat-lbl">Available Credit</span><span class="stat-val credit">₹ 50,856.00</span></div></div>
+      </div>
+      <div class="search-fields">
+        <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Source *</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Bengaluru</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Mysuru</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Hubli</div></div></div></div>
+        <button class="swap-btn" onclick="swapSourceDest(this)"><span class="msym">swap_horiz</span></button>
+        <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Destination *</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Mysuru</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Bengaluru</div></div></div></div>
+        <div class="md3-dp" id="dp-cur-journey"><label class="md3-border-lbl">Journey Date *</label><div class="dp-trigger" onclick="dpToggle('dp-cur-journey')"><span class="dp-trigger-val" id="dp-cur-journey-val"></span><span class="msym dp-cal-ico">calendar_month</span></div><div class="dp-panel" id="dp-cur-journey-panel"><div class="dp-head"><button class="dp-nav-btn" type="button" onclick="dpNav('dp-cur-journey',-1);event.stopPropagation()"><span class="msym">chevron_left</span></button><button class="dp-month-lbl" type="button" id="dp-cur-journey-lbl" onclick="dpToggleMode('dp-cur-journey');event.stopPropagation()"></button><button class="dp-nav-btn" type="button" onclick="dpNav('dp-cur-journey',1);event.stopPropagation()"><span class="msym">chevron_right</span></button></div><div class="dp-dow"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div><div class="dp-grid" id="dp-cur-journey-grid"></div></div></div>
+        <div class="md3-dp" id="dp-cur-return" style="display:none"><label class="md3-border-lbl">Date of Return</label><div class="dp-trigger" onclick="dpToggle('dp-cur-return')"><span class="dp-trigger-val" id="dp-cur-return-val"></span><span class="msym dp-cal-ico">calendar_month</span></div><div class="dp-panel" id="dp-cur-return-panel"><div class="dp-head"><button class="dp-nav-btn" type="button" onclick="dpNav('dp-cur-return',-1);event.stopPropagation()"><span class="msym">chevron_left</span></button><button class="dp-month-lbl" type="button" id="dp-cur-return-lbl" onclick="dpToggleMode('dp-cur-return');event.stopPropagation()"></button><button class="dp-nav-btn" type="button" onclick="dpNav('dp-cur-return',1);event.stopPropagation()"><span class="msym">chevron_right</span></button></div><div class="dp-dow"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div><div class="dp-grid" id="dp-cur-return-grid"></div></div></div>
+        <div class="md3-dp" id="cur-trip-num-wrap" style="display:none"><label class="md3-border-lbl">Trip Number *</label><div class="dp-trigger" style="cursor:text"><input type="text" id="cur-inp-trip-num" placeholder="e.g. 2100BNGMYS" style="border:none;outline:none;background:transparent;font-size:14px;font-family:'Roboto',sans-serif;width:100%;"><span class="msym dp-cal-ico">confirmation_number</span></div></div>
+        <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value="2" style="min-width:130px"><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">No. of Passengers *</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value">2</span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">1</div><div class="ksrtc-select__option" onclick="md3Pick(this)">2</div><div class="ksrtc-select__option" onclick="md3Pick(this)">3</div><div class="ksrtc-select__option" onclick="md3Pick(this)">4</div><div class="ksrtc-select__option" onclick="md3Pick(this)">5</div></div></div></div>
+        <label class="check-field"><input type="checkbox"> Single Lady</label>
+        <button class="btn btn-orange" onclick="doCurSearch()"><span class="msym">search</span>Search</button>
+        <button class="btn btn-outlined" onclick="doReset()"><span class="msym">refresh</span>Reset</button>
+      </div>
+    </div>
+    <div class="card" id="cur-empty-state"><div class="empty-state"><span class="msym">description</span><p>Report Will Display Here</p></div></div>
+    <div id="cur-results-wrap" style="display:none;flex-direction:column;gap:12px;">
+      <div class="results-card card"><div class="sec-header"><h2>Available Services</h2></div><div class="grid-scroll-wrap"><div id="ag-cur" class="ag-theme-alpine ag-theme-ksrtc" style="width:100%;"></div></div></div>
+      <div class="results-card card" id="cur-return-card" style="display:none"><div class="sec-header"><h2>Return Services</h2></div><div class="grid-scroll-wrap"><div id="ag-cur-return" class="ag-theme-alpine ag-theme-ksrtc" style="width:100%;"></div></div></div>
+    </div>
+  </main>
+</div>
+
+<!-- CURRENT BOOKING PANEL (no seat map) -->
+<div id="cur-seat-panel-wrap" class="ag-seat-panel-wrap">
+  <div id="cur-seat-panel" style="padding:16px 20px;display:flex;flex-direction:column;gap:14px;">
+    <!-- Boarding / Dropping row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+        <div class="field-label">Boarding Point</div>
+        <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value="" data-addr-target="cur-board-addr"><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Select Boarding Point</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)" data-addr="11:00, Kempegowda BS Terminal">Bengaluru (Kempegowda BS)</div><div class="ksrtc-select__option" onclick="md3Pick(this)" data-addr="11:15, Shivajinagar BS">Bengaluru (Shivajinagar)</div></div></div></div>
+        <div class="addr-text" id="cur-board-addr">11:00, Kempegowda BS Terminal</div>
+      </div>
+      <div>
+        <div class="field-label">Dropping Point</div>
+        <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value="" data-addr-target="cur-drop-addr"><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Select Dropping Point</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)" data-addr="13:00, Mysuru Depot">Mysuru (Central BS)</div><div class="ksrtc-select__option" onclick="md3Pick(this)" data-addr="13:15, Bannimantap BS">Mysuru (Bannimantap)</div></div></div></div>
+        <div class="addr-text" id="cur-drop-addr">13:00, Mysuru Depot</div>
+      </div>
+    </div>
+    <!-- Passenger Details -->
+    <div class="pax-section" style="margin:0;">
+      <h3>Passenger Details</h3>
+      <!-- Contact row: Full Name · Mobile · Email · GST -->
+      <div class="contact-row">
+        <div class="ksrtc-field ksrtc-field--outlined ksrtc-field--md"><div class="ksrtc-field__wrap"><span class="ksrtc-field__label">Full Name *</span><input class="ksrtc-field__input" type="text" placeholder="Primary passenger name"></div></div>
+        <div class="ksrtc-field ksrtc-field--outlined ksrtc-field--md"><div class="ksrtc-field__wrap"><span class="ksrtc-field__label">Mobile Number *</span><input class="ksrtc-field__input" type="tel" placeholder="10-digit mobile"></div></div>
+        <div class="ksrtc-field ksrtc-field--outlined ksrtc-field--md"><div class="ksrtc-field__wrap"><span class="ksrtc-field__label">Email ID</span><input class="ksrtc-field__input" type="email" placeholder="email@example.com"></div></div>
+        <div class="ksrtc-field ksrtc-field--outlined ksrtc-field--md"><div class="ksrtc-field__wrap"><span class="ksrtc-field__label">GST No.</span><input class="ksrtc-field__input" type="text" placeholder="GST number (optional)"></div></div>
+      </div>
+      <!-- Pax table: Name · Gender · Age · Concession · Nationality · Fare -->
+      <div class="pax-table-wrap">
+        <table class="pax-table">
+          <thead><tr><th>Name</th><th>Gender</th><th>Age</th><th>Concession</th><th>Nationality</th><th>Basic Fare</th><th>Action</th></tr></thead>
+          <tbody id="cur-pax-rows"></tbody>
+        </table>
+      </div>
+      <!-- Fare section -->
+      <div class="fare-row">
+        <div class="ticket-stub"><div class="stub-label">Ticket No.</div><div class="stub-num" id="cur-ticket-num">51293092</div></div>
+        <div class="fare-card" id="cur-fare-card">
+          <div class="fare-line"><span class="fl-label">Reservation Fee (+)</span><span class="fl-val">40.00</span></div>
+          <div class="fare-line"><span class="fl-label">Concessions (-)</span><span class="fl-val">0.00</span></div>
+          <div class="fare-line"><span class="fl-label">ARF+UF-TF+EF+BF (+)</span><span class="fl-val">22.00</span></div>
+          <div class="fare-line"><span class="fl-label">GST (+)</span><span class="fl-val">0.00</span></div>
+          <div class="fare-line"><span class="fl-label">Total Fare</span><span class="fl-val">202.00</span></div>
+          <div class="fare-line balance"><span class="fl-label">Balance Amount</span><span class="fl-val">202.00</span></div>
+        </div>
+      </div>
+    </div>
+    <!-- Action bar -->
+    <div class="action-bar has-payment">
+      <div class="payment-fields">
+        <div class="pay-field">
+          <label>Payment Mode *</label>
+          <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value="" id="cur-pay-mode-menu"><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Payment Mode</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder">Select Mode</span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Cash</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Credit/Debit</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Net Banking</div><div class="ksrtc-select__option" onclick="md3Pick(this)">UPI</div></div></div></div>
+        </div>
+      </div>
+      <div class="action-btns">
+        <button class="btn btn-orange" onclick="showSuccessModal('Ticket generated successfully.')"><span class="msym">confirmation_number</span>Generate Ticket</button>
+        <button class="btn btn-outlined"><span class="msym">print</span>Counter E-Ticket</button>
+        <button class="btn btn-outlined" onclick="closePanelCurrent()"><span class="msym">close</span>Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ SCREEN 3 — BLOCK SEATS ═══════════════════════ -->
+<div id="screen-block-seats" class="screen">
+  <header class="top-bar"><button class="icon-btn" onclick="openNav()"><span class="msym">menu</span></button><div class="brand"><div class="brand-icon"><span class="msym">directions_bus</span></div><div class="brand-text">Karnataka State Road Transport Corporation</div></div><div class="divider"></div><span class="welcome">Welcome | Manish Manohar</span><div class="spacer"></div><span class="counter-chip">Counter Code: KBSC2</span><button class="text-btn">Logout</button></header>
+  <div class="headline-bar"><nav class="breadcrumb"><button class="bc-home" onclick="navGo('Advance Ticket Booking')">Booking</button><span class="bc-sep">chevron_right</span><span class="bc-current"><span class="msym">block</span>Block Seats</span></nav></div>
+  <main class="main">
+    <div class="search-card">
+      <div class="search-top"><div class="seg-btn" id="blk-trip-btn"><button class="seg-opt active" onclick="setTrip(this)">One-Way</button><button class="seg-opt" onclick="setTrip(this)">Return Trip</button><button class="seg-opt" onclick="setTrip(this)">Trip Number</button></div></div>
+      <div class="search-fields">
+        <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Source *</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Bengaluru</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Mysuru</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Hubli</div></div></div></div>
+        <button class="swap-btn" onclick="swapSourceDest(this)"><span class="msym">swap_horiz</span></button>
+        <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Destination *</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Mysuru</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Bengaluru</div></div></div></div>
+        <div class="md3-dp" id="dp-blk-journey"><label class="md3-border-lbl">Journey Date *</label><div class="dp-trigger" onclick="dpToggle('dp-blk-journey')"><span class="dp-trigger-val" id="dp-blk-journey-val"></span><span class="msym dp-cal-ico">calendar_month</span></div><div class="dp-panel" id="dp-blk-journey-panel"><div class="dp-head"><button class="dp-nav-btn" type="button" onclick="dpNav('dp-blk-journey',-1);event.stopPropagation()"><span class="msym">chevron_left</span></button><button class="dp-month-lbl" type="button" id="dp-blk-journey-lbl" onclick="dpToggleMode('dp-blk-journey');event.stopPropagation()"></button><button class="dp-nav-btn" type="button" onclick="dpNav('dp-blk-journey',1);event.stopPropagation()"><span class="msym">chevron_right</span></button></div><div class="dp-dow"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div><div class="dp-grid" id="dp-blk-journey-grid"></div></div></div>
+        <div class="md3-dp" id="dp-blk-return" style="display:none"><label class="md3-border-lbl">Return Date</label><div class="dp-trigger" onclick="dpToggle('dp-blk-return')"><span class="dp-trigger-val" id="dp-blk-return-val"></span><span class="msym dp-cal-ico">calendar_month</span></div><div class="dp-panel" id="dp-blk-return-panel"><div class="dp-head"><button class="dp-nav-btn" type="button" onclick="dpNav('dp-blk-return',-1);event.stopPropagation()"><span class="msym">chevron_left</span></button><button class="dp-month-lbl" type="button" id="dp-blk-return-lbl" onclick="dpToggleMode('dp-blk-return');event.stopPropagation()"></button><button class="dp-nav-btn" type="button" onclick="dpNav('dp-blk-return',1);event.stopPropagation()"><span class="msym">chevron_right</span></button></div><div class="dp-dow"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div><div class="dp-grid" id="dp-blk-return-grid"></div></div></div>
+        <button class="btn btn-orange" onclick="doBlkSearch()"><span class="msym">search</span>Search</button>
+        <button class="btn btn-outlined" onclick="doReset()"><span class="msym">refresh</span>Reset</button>
+      </div>
+    </div>
+    <div class="card" id="blk-empty-state"><div class="empty-state"><span class="msym">description</span><p>Report Will Display Here</p></div></div>
+    <div id="blk-results-wrap" style="display:none;flex-direction:column;gap:12px;">
+      <div class="results-card card"><div class="sec-header"><h2>Available Services — Block Seats</h2></div><div class="grid-scroll-wrap"><div id="ag-blk" class="ag-theme-alpine ag-theme-ksrtc" style="width:100%;"></div></div></div>
+    </div>
+  </main>
+</div>
+
+<!-- BLOCK SEATS PANEL -->
+<div id="blk-panel-wrap" class="ag-seat-panel-wrap">
+  <div id="blk-seat-panel">
+    <div class="seat-panel-grid">
+      <div class="seat-map-col">
+        <span class="seat-map-title">Block Seats</span>
+        <div class="bus-container">
+          <div class="bus-grid">
+            <div class="bg-left-wheel"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="10" stroke="#455A64" stroke-width="1.5" fill="#fff"/><circle cx="11" cy="11" r="3.5" stroke="#455A64" stroke-width="1.5" fill="#fff"/><line x1="11" y1="7.5" x2="11" y2="1.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/><line x1="14.8" y1="13.5" x2="19.8" y2="16.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/><line x1="7.2" y1="13.5" x2="2.2" y2="16.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+            <div class="berth-row" id="blk-upper-grid"></div>
+            <div class="bg-row-gap"></div><div class="bg-row-gap"></div>
+            <div class="bg-left-label">Lower</div>
+            <div class="berth-row" id="blk-lower-grid"></div>
+          </div>
+        </div>
+        <div class="seat-legend">
+          <div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#A5D6A7;"></div>Available</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#2E7D32;border-color:#1B5E20;"></div>Selected</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#F48FB1;"></div>Ladies</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#F5F5F5;border-color:#B0BEC5;opacity:.55;"></div>Blocked</div>
+        </div>
+      </div>
+      <div class="boarding-col">
+        <div>
+          <div class="field-label">Boarding Point</div>
+          <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value="" data-addr-target="blk-board-addr"><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Select Boarding Point</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)" data-addr="05:40, Mysore Road Satellite BS 7760990530">Bengaluru (Kempegowda BS)</div><div class="ksrtc-select__option" onclick="md3Pick(this)" data-addr="05:55, Shivajinagar BS">Bengaluru (Shivajinagar)</div></div></div></div>
+          <div class="addr-text" id="blk-board-addr">05:40, Mysore Road Satellite BS 7760990530</div>
+        </div>
+        <div>
+          <div class="field-label">Dropping Point</div>
+          <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value="" data-addr-target="blk-drop-addr"><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Select Dropping Point</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)" data-addr="15:05, Mysore Road Satellite BS 7760990530">Mysuru (Central BS)</div><div class="ksrtc-select__option" onclick="md3Pick(this)" data-addr="15:20, Bannimantap BS">Mysuru (Bannimantap)</div></div></div></div>
+          <div class="addr-text" id="blk-drop-addr">15:05, Mysore Road Satellite BS 7760990530</div>
+        </div>
+        <div>
+          <div class="field-label">Concession</div>
+          <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Select Concession</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">General Public</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Senior Citizen</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Student</div></div></div></div>
+        </div>
+      </div>
+    </div>
+    <!-- Block-specific fields row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;padding:12px 16px;background:var(--color-surface-container-low);border-top:1px solid var(--color-outline-variant);">
+      <div class="ksrtc-field ksrtc-field--outlined ksrtc-field--md ksrtc-field--readonly"><div class="ksrtc-field__wrap"><span class="ksrtc-field__label">Blocked Seats</span><input class="ksrtc-field__input" type="text" id="blk-seats-field" placeholder="e.g. 7,8,11,12" readonly></div></div>
+      <div class="ksrtc-field ksrtc-field--outlined ksrtc-field--md"><div class="ksrtc-field__wrap"><span class="ksrtc-field__label">Email ID</span><input class="ksrtc-field__input" type="email" placeholder="email@example.com"></div></div>
+      <div class="ksrtc-field ksrtc-field--outlined ksrtc-field--md"><div class="ksrtc-field__wrap"><span class="ksrtc-field__label">Mobile No</span><input class="ksrtc-field__input" type="tel" placeholder="10-digit mobile"></div></div>
+      <label class="check-field" style="align-self:center;margin-top:8px;"><input type="checkbox"> Select Check Box to Send SMS</label>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:0 16px 12px;background:var(--color-surface-container-low);">
+      <div class="ksrtc-field ksrtc-field--outlined ksrtc-field--md"><div class="ksrtc-field__wrap"><span class="ksrtc-field__label">Reference ID</span><input class="ksrtc-field__input" type="text" id="blk-ref" placeholder="Reference name or ID"></div></div>
+      <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Blocked Type</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Special Blocking</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Ladies Seats</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Depot Quota</div><div class="ksrtc-select__option" onclick="md3Pick(this)">VIP Quota</div></div></div></div>
+      <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Quota Type</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Others</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Government</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Defence</div></div></div></div>
+    </div>
+    <div class="action-bar">
+      <div class="action-btns" style="margin-left:auto;">
+        <button class="btn btn-outlined" onclick="closePanelBlock()"><span class="msym">close</span>Close</button>
+        <button class="btn btn-orange" onclick="showSuccessModal('Seats blocked successfully.')"><span class="msym">save</span>Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ SCREEN 4 — UN BLOCK SEATS ═══════════════════════ -->
+<div id="screen-unblock-seats" class="screen">
+  <header class="top-bar"><button class="icon-btn" onclick="openNav()"><span class="msym">menu</span></button><div class="brand"><div class="brand-icon"><span class="msym">directions_bus</span></div><div class="brand-text">Karnataka State Road Transport Corporation</div></div><div class="divider"></div><span class="welcome">Welcome | Manish Manohar</span><div class="spacer"></div><span class="counter-chip">Counter Code: KBSC2</span><button class="text-btn">Logout</button></header>
+  <div class="headline-bar"><nav class="breadcrumb"><button class="bc-home" onclick="navGo('Advance Ticket Booking')">Booking</button><span class="bc-sep">chevron_right</span><span class="bc-current"><span class="msym">lock_open</span>Un Block Seats</span></nav></div>
+  <main class="main">
+    <div class="search-card">
+      <div class="search-fields">
+        <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Secret Key *</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Bengaluru</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Mysuru</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Hubli</div></div></div></div>
+        <div class="ksrtc-field ksrtc-field--outlined ksrtc-field--md"><div class="ksrtc-field__wrap"><span class="ksrtc-field__label">Trip Code</span><input class="ksrtc-field__input" type="text" placeholder="e.g. 2131BNGMRD"></div></div>
+        <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Source *</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Bengaluru</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Mysuru</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Tirupathi</div></div></div></div>
+        <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Destination *</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Mysuru</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Hunsur</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Bengaluru</div></div></div></div>
+        <div class="md3-dp" id="dp-unblk-journey"><label class="md3-border-lbl">Journey Date *</label><div class="dp-trigger" onclick="dpToggle('dp-unblk-journey')"><span class="dp-trigger-val" id="dp-unblk-journey-val"></span><span class="msym dp-cal-ico">calendar_month</span></div><div class="dp-panel" id="dp-unblk-journey-panel"><div class="dp-head"><button class="dp-nav-btn" type="button" onclick="dpNav('dp-unblk-journey',-1);event.stopPropagation()"><span class="msym">chevron_left</span></button><button class="dp-month-lbl" type="button" id="dp-unblk-journey-lbl" onclick="dpToggleMode('dp-unblk-journey');event.stopPropagation()"></button><button class="dp-nav-btn" type="button" onclick="dpNav('dp-unblk-journey',1);event.stopPropagation()"><span class="msym">chevron_right</span></button></div><div class="dp-dow"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div><div class="dp-grid" id="dp-unblk-journey-grid"></div></div></div>
+        <button class="btn btn-orange" onclick="doUnblockSearch()"><span class="msym">search</span>Search</button>
+        <button class="btn btn-outlined"><span class="msym">refresh</span>Reset</button>
+      </div>
+    </div>
+    <div class="card" id="unblk-empty-state"><div class="empty-state"><span class="msym">description</span><p>Report Will Display Here</p></div></div>
+    <div id="unblk-results-wrap" class="card" style="display:none;flex-direction:column;overflow:visible;flex:1;">
+      <div class="sec-header"><h2>Listing Blocked Seats</h2></div>
+      <div class="grid-scroll-wrap"><div id="ag-unblk" class="ag-theme-alpine ag-theme-ksrtc" style="width:100%;"></div></div>
+    </div>
+  </main>
+</div>
+
+<!-- ═══════════════════════ SCREEN 5 — LINK TICKET ═══════════════════════ -->
+<div id="screen-link-ticket" class="screen">
+  <header class="top-bar"><button class="icon-btn" onclick="openNav()"><span class="msym">menu</span></button><div class="brand"><div class="brand-icon"><span class="msym">directions_bus</span></div><div class="brand-text">Karnataka State Road Transport Corporation</div></div><div class="divider"></div><span class="welcome">Welcome | Manish Manohar</span><div class="spacer"></div><span class="counter-chip">Counter Code: KBSC2</span><button class="text-btn">Logout</button></header>
+  <div class="headline-bar"><nav class="breadcrumb"><button class="bc-home" onclick="navGo('Advance Ticket Booking')">Booking</button><span class="bc-sep">chevron_right</span><span class="bc-current"><span class="msym">link</span>Link Ticket</span></nav></div>
+  <main class="main">
+    <div class="search-card">
+      <div class="search-fields">
+        <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Source *</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Bengaluru</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Mysuru</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Hubli</div></div></div></div>
+        <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Destination *</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Mysuru</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Mangaluru</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Hassan</div></div></div></div>
+        <div class="md3-dp" id="dp-lnk-journey"><label class="md3-border-lbl">Journey Date *</label><div class="dp-trigger" onclick="dpToggle('dp-lnk-journey')"><span class="dp-trigger-val" id="dp-lnk-journey-val"></span><span class="msym dp-cal-ico">calendar_month</span></div><div class="dp-panel" id="dp-lnk-journey-panel"><div class="dp-head"><button class="dp-nav-btn" type="button" onclick="dpNav('dp-lnk-journey',-1);event.stopPropagation()"><span class="msym">chevron_left</span></button><button class="dp-month-lbl" type="button" id="dp-lnk-journey-lbl" onclick="dpToggleMode('dp-lnk-journey');event.stopPropagation()"></button><button class="dp-nav-btn" type="button" onclick="dpNav('dp-lnk-journey',1);event.stopPropagation()"><span class="msym">chevron_right</span></button></div><div class="dp-dow"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div><div class="dp-grid" id="dp-lnk-journey-grid"></div></div></div>
+        <div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Minimum Stopover Duration</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">30 Minutes</div><div class="ksrtc-select__option" onclick="md3Pick(this)">1 Hour</div><div class="ksrtc-select__option" onclick="md3Pick(this)">2 Hours</div><div class="ksrtc-select__option" onclick="md3Pick(this)">3 Hours</div><div class="ksrtc-select__option" onclick="md3Pick(this)">4 Hours</div></div></div></div>
+        <button class="btn btn-orange" onclick="proceedLinkTrip()"><span class="msym">search</span>Search</button>
+        <button class="btn btn-outlined" onclick="doReset()"><span class="msym">refresh</span>Reset</button>
+      </div>
+    </div>
+    <div class="card" id="link-empty-state"><div class="empty-state"><span class="msym">description</span><p>Ticket Will Display Here</p></div></div>
+    <div id="link-results-wrap" style="display:none;flex-direction:column;gap:12px;">
+      <div class="results-card card"><div class="sec-header"><h2>Start Trip Services</h2></div><div class="grid-scroll-wrap"><div id="ag-lnk-start" class="ag-theme-alpine ag-theme-ksrtc" style="width:100%;"></div></div></div>
+      <div class="results-card card"><div class="sec-header"><h2>Connect Trip Services</h2></div><div class="grid-scroll-wrap"><div id="ag-lnk-connect" class="ag-theme-alpine ag-theme-ksrtc" style="width:100%;"></div></div></div>
+    </div>
+  </main>
+</div>
+
+<!-- LINK START PANEL -->
+<div id="lnk-start-panel-wrap" class="ag-seat-panel-wrap">
+  <div id="lnk-start-seat-panel">
+    <div class="seat-panel-grid">
+      <div class="seat-map-col">
+        <span class="seat-map-title">Start Trip — Seats</span>
+        <div class="bus-container"><div class="bus-grid">
+          <div class="bg-left-wheel"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="10" stroke="#455A64" stroke-width="1.5" fill="#fff"/><circle cx="11" cy="11" r="3.5" stroke="#455A64" stroke-width="1.5" fill="#fff"/><line x1="11" y1="7.5" x2="11" y2="1.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/><line x1="14.8" y1="13.5" x2="19.8" y2="16.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/><line x1="7.2" y1="13.5" x2="2.2" y2="16.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div class="berth-row" id="lnk-start-upper-grid"></div>
+          <div class="bg-row-gap"></div><div class="bg-row-gap"></div>
+          <div class="bg-left-label">Lower</div>
+          <div class="berth-row" id="lnk-start-lower-grid"></div>
+        </div></div>
+        <div class="seat-legend"><div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#A5D6A7;"></div>Available</div><div class="leg-item"><div class="leg-dot" style="background:#2E7D32;border-color:#1B5E20;"></div>Selected</div><div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#F48FB1;"></div>Ladies</div></div>
+      </div>
+      <div class="boarding-col">
+        <div><div class="field-label">Boarding Point</div><div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Select Point</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Bengaluru (Kempegowda BS)</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Bengaluru (Majestic)</div></div></div></div></div>
+        <div><div class="field-label">Dropping Point</div><div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Select Point</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Mangaluru (KSRTC BS)</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Hunsur BS</div></div></div></div></div>
+      </div>
+    </div>
+    <div class="pax-section">
+      <h3>Passenger Details</h3>
+      <div class="contact-row"><div class="ksrtc-field ksrtc-field--outlined ksrtc-field--md"><div class="ksrtc-field__wrap"><span class="ksrtc-field__label">Mobile Number *</span><input class="ksrtc-field__input" type="tel" placeholder="10-digit mobile"></div></div><div class="ksrtc-field ksrtc-field--outlined ksrtc-field--md"><div class="ksrtc-field__wrap"><span class="ksrtc-field__label">Email Address</span><input class="ksrtc-field__input" type="email" placeholder="email@example.com"></div></div></div>
+      <div class="pax-table-wrap"><table class="pax-table"><thead><tr><th>Seat</th><th>Name</th><th>Gender</th><th>Age</th><th>Concession</th><th>Nationality</th><th>Fare</th></tr></thead><tbody id="lnk-start-pax-rows"></tbody></table></div>
+      <div class="fare-row"><div class="ticket-stub"><div class="stub-label">Ticket No.</div><div class="stub-num">—</div></div><div class="fare-card" id="lnk-start-fare-card"><div class="fare-line"><span class="fl-label">Select seats to see fare</span></div></div></div>
+    </div>
+    <div class="action-bar has-payment">
+      <div class="payment-fields"><div class="pay-field"><label>Payment Mode *</label><div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Payment Mode</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder">Select Mode</span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Cash</div><div class="ksrtc-select__option" onclick="md3Pick(this)">UPI</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Card</div></div></div></div></div></div>
+      <div class="action-btns">
+        <button class="btn btn-outlined" onclick="closePanelLinkStart()"><span class="msym">close</span>Cancel</button>
+        <button class="btn btn-outlined" onclick="clearSeatSelection('lnk-start','lnk-start-pax-rows','lnk-start-fare-card')"><span class="msym">restart_alt</span>Clear</button>
+        <button class="btn btn-orange" onclick="showSuccessModal('Link ticket generated successfully.')"><span class="msym">link</span>Book Connect Trip</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LINK CONNECT PANEL -->
+<div id="lnk-connect-panel-wrap" class="ag-seat-panel-wrap">
+  <div id="lnk-connect-seat-panel">
+    <div class="seat-panel-grid">
+      <div class="seat-map-col">
+        <span class="seat-map-title">Connect Trip — Seats</span>
+        <div class="bus-container"><div class="bus-grid">
+          <div class="bg-left-wheel"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="10" stroke="#455A64" stroke-width="1.5" fill="#fff"/><circle cx="11" cy="11" r="3.5" stroke="#455A64" stroke-width="1.5" fill="#fff"/><line x1="11" y1="7.5" x2="11" y2="1.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/><line x1="14.8" y1="13.5" x2="19.8" y2="16.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/><line x1="7.2" y1="13.5" x2="2.2" y2="16.5" stroke="#455A64" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div class="berth-row" id="lnk-connect-upper-grid"></div>
+          <div class="bg-row-gap"></div><div class="bg-row-gap"></div>
+          <div class="bg-left-label">Lower</div>
+          <div class="berth-row" id="lnk-connect-lower-grid"></div>
+        </div></div>
+        <div class="seat-legend"><div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#A5D6A7;"></div>Available</div><div class="leg-item"><div class="leg-dot" style="background:#2E7D32;border-color:#1B5E20;"></div>Selected</div><div class="leg-item"><div class="leg-dot" style="background:#fff;border-color:#F48FB1;"></div>Ladies</div></div>
+      </div>
+      <div class="boarding-col">
+        <div><div class="field-label">Boarding Point</div><div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Select Point</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Channapatna BS</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Mandya BS</div></div></div></div></div>
+        <div><div class="field-label">Dropping Point</div><div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Select Point</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Mysuru (Central BS)</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Hassan BS</div></div></div></div></div>
+      </div>
+    </div>
+    <div class="pax-section">
+      <h3>Passenger Details</h3>
+      <div class="contact-row"><div class="ksrtc-field ksrtc-field--outlined ksrtc-field--md"><div class="ksrtc-field__wrap"><span class="ksrtc-field__label">Mobile Number *</span><input class="ksrtc-field__input" type="tel" placeholder="10-digit mobile"></div></div><div class="ksrtc-field ksrtc-field--outlined ksrtc-field--md"><div class="ksrtc-field__wrap"><span class="ksrtc-field__label">Email Address</span><input class="ksrtc-field__input" type="email" placeholder="email@example.com"></div></div></div>
+      <div class="pax-table-wrap"><table class="pax-table"><thead><tr><th>Seat</th><th>Name</th><th>Gender</th><th>Age</th><th>Concession</th><th>Nationality</th><th>Fare</th></tr></thead><tbody id="lnk-connect-pax-rows"></tbody></table></div>
+      <div class="fare-row"><div class="ticket-stub"><div class="stub-label">Ticket No.</div><div class="stub-num">—</div></div><div class="fare-card" id="lnk-connect-fare-card"><div class="fare-line"><span class="fl-label">Select seats to see fare</span></div></div></div>
+    </div>
+    <div class="action-bar has-payment">
+      <div class="payment-fields"><div class="pay-field"><label>Payment Mode *</label><div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Payment Mode</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder">Select Mode</span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel"><div class="ksrtc-select__option" onclick="md3Pick(this)">Cash</div><div class="ksrtc-select__option" onclick="md3Pick(this)">UPI</div><div class="ksrtc-select__option" onclick="md3Pick(this)">Card</div></div></div></div></div></div>
+      <div class="action-btns">
+        <button class="btn btn-outlined" onclick="closePanelLinkConnect()"><span class="msym">close</span>Cancel</button>
+        <button class="btn btn-outlined" onclick="clearSeatSelection('lnk-connect','lnk-connect-pax-rows','lnk-connect-fare-card')"><span class="msym">restart_alt</span>Clear</button>
+        <button class="btn btn-orange" onclick="showSuccessModal('Link ticket generated successfully.')"><span class="msym">link</span>Book Link Ticket</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ SCREEN 6 — TICKET ═══════════════════════ -->
+<div id="screen-ticket" class="screen">
+  <header class="top-bar"><button class="icon-btn" onclick="openNav()"><span class="msym">menu</span></button><div class="brand"><div class="brand-icon"><span class="msym">directions_bus</span></div><div class="brand-text">Karnataka State Road Transport Corporation</div></div><div class="spacer"></div><span class="counter-chip">Counter Code: KBSC2</span><button class="text-btn">Logout</button></header>
+  <div class="tkt-actions">
+    <button class="btn btn-outlined" onclick="backToSearch()"><span class="msym">arrow_back</span>Back to Search</button>
+    <button class="btn btn-orange" onclick="window.print()"><span class="msym">print</span>Print Ticket</button>
+  </div>
+  <main class="main">
+    <div class="tkt-card">
+      <div class="tkt-header"><div><div style="font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:.5px;">Karnataka State Road Transport Corporation</div><div style="font-size:16px;font-weight:700;margin-top:2px;">OPRS — Reservation Ticket</div></div><div style="text-align:right;font-size:12px;" class="tkt-ref"></div></div>
+      <div class="tkt-title"><h2>Ambaari Utsav (AC Sleeper) — Reservation Ticket</h2></div>
+      <div class="tkt-body">
+        <div style="font-size:12px;margin-bottom:12px;padding:8px;background:var(--color-surface-container-low);border-radius:var(--shape-sm);"></div>
+        <div class="tkt-grid">
+          <div class="tf"><span class="tf-lbl">Booked Date / Date of Journey</span><span class="tf-val">—</span></div>
+          <div class="tf"><span class="tf-lbl">eKRPT / Trip Code</span><span class="tf-val">—</span></div>
+          <div class="tf"><span class="tf-lbl">State</span><span class="tf-val">KARNATAKA SRTC</span></div>
+          <div class="tf"><span class="tf-lbl">Origin / Start Place</span><span class="tf-val">—</span></div>
+          <div class="tf"><span class="tf-lbl">Pickup From</span><span class="tf-val">—</span></div>
+          <div class="tf"><span class="tf-lbl">Steaming Point</span><span class="tf-val">—</span></div>
+          <div class="tf"><span class="tf-lbl">Departure Time</span><span class="tf-val">—</span></div>
+          <div class="tf"><span class="tf-lbl">Total Seat Numbers</span><span class="tf-val">—</span></div>
+          <div class="tf"><span class="tf-lbl">Total Amount Mounted</span><span class="tf-val">—</span></div>
+        </div>
+        <table class="tkt-pax"><thead><tr><th>Seat</th><th>Name</th><th>Gender</th><th>Age</th><th>Concession</th><th>Nationality</th><th>Fare</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="tkt-footer"><span class="tkt-fine">This ticket is valid only for the journey mentioned above. No refund on cancellation within 2 hours of departure.</span></div>
+    </div>
+  </main>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="dialog-backdrop" id="confirm-backdrop" onclick="backdropClose(event)">
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div class="dialog-icon"><span class="msym">confirmation_number</span></div>
+    <h2 id="confirm-title">Confirm Booking</h2>
+    <div class="confirm-num" id="confirm-pnr">PNR —</div>
+    <p>Please verify your booking details before confirming.</p>
+    <div class="dialog-actions">
+      <button class="btn btn-outlined" onclick="closeConfirmDialog()">Cancel</button>
+      <button class="btn btn-orange" onclick="goToTicket()">Confirm &amp; Print</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div id="success-modal-backdrop" onclick="if(event.target===this)closeSuccessModal()">
+  <div id="success-modal">
+    <div class="success-icon"><span class="msym">check_circle</span></div>
+    <h2 style="font-size:20px;font-weight:500;margin-bottom:8px;">Success!</h2>
+    <p id="success-modal-msg" style="font-size:14px;color:var(--color-on-surface-variant);margin-bottom:20px;"></p>
+    <button class="btn btn-orange" style="width:100%" onclick="closeSuccessModal()">Done</button>
+  </div>
+</div>
+
+<!-- TOAST PORTAL -->
+<!-- ═══════════════════════ SCREEN 7 — CIRCULAR TICKET ═══════════════════════ -->
+<div id="screen-circular-ticket" class="screen">
+  <header class="top-bar"><button class="icon-btn" onclick="openNav()"><span class="msym">menu</span></button><div class="brand"><div class="brand-icon"><span class="msym">directions_bus</span></div><div class="brand-text">Karnataka State Road Transport Corporation</div></div><div class="divider"></div><span class="welcome">Welcome | Manish Manohar</span><span class="clock"></span><div class="spacer"></div><span class="counter-chip">Counter Code: KBSC2</span><button class="text-btn">Logout</button></header>
+  <div class="headline-bar"><nav class="breadcrumb"><button class="bc-home" onclick="navGo('Advanced Ticket Booking')">Booking</button><span class="bc-sep">chevron_right</span><span class="bc-current"><span class="msym">route</span>Circular Ticket</span></nav></div>
+  <main class="main">
+    <div class="search-card">
+      <div id="circular-legs-wrap" style="display:flex;flex-direction:column;gap:10px;">
+        <!-- legs injected by JS -->
+      </div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:12px;">
+        <button class="btn btn-outlined" onclick="addCircularLeg()"><span class="msym">add</span>Add One More</button>
+        <div style="flex:1;"></div>
+        <button class="btn btn-outlined" onclick="resetCircular()"><span class="msym">refresh</span>Reset</button>
+        <button class="btn btn-orange" onclick="doCircularSearch()"><span class="msym">search</span>Search</button>
+      </div>
+    </div>
+    <div class="card" id="circ-empty-state"><div class="empty-state"><span class="msym">description</span><p>Report Will Display Here</p></div></div>
+    <div id="circ-results-wrap" style="display:none;flex-direction:column;gap:12px;">
+      <div class="results-card card">
+        <div class="sec-header"><h2>Circular Ticket Service</h2></div>
+        <div class="grid-scroll-wrap"><div id="ag-circ" class="ag-theme-alpine ag-theme-ksrtc" style="width:100%;"></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-portal" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   V2 JAVASCRIPT — KSRTC OPRS Prototype
+   Component-driven, all states, all screens
+   Token source: DS tokens.css + bridge in CSS
+═══════════════════════════════════════════════════════════════ */
+
+/* ─── NAV DATA ─── */
+const NAV_ITEMS = [
+  { label:'Advance Ticket Booking', icon:'confirmation_number', sub:['Advanced Ticket Booking','Current Booking'] },
+  { label:'Seat Blocking',           icon:'block',              sub:['Block Seats','Un Block Seats'] },
+  { label:'Linking',                 icon:'link',               sub:['Link Ticket','Circular Ticket'] },
+];
+
+function buildNav() {
+  const body = document.getElementById('nav-body');
+  NAV_ITEMS.forEach(function(g) {
+    const wrap = document.createElement('div');
+    wrap.className = 'nav-group';
+    const btn = document.createElement('button');
+    btn.className = 'nav-group-trigger';
+    btn.innerHTML = '<span class="msym nav-group-icon">' + g.icon + '</span><span class="nav-group-label">' + g.label + '</span><span class="msym nav-group-chevron">expand_more</span>';
+    btn.onclick = function() {
+      btn.classList.toggle('open');
+      items.classList.toggle('open');
+    };
+    const items = document.createElement('div');
+    items.className = 'nav-group-items';
+    g.sub.forEach(function(s) {
+      const si = document.createElement('button');
+      si.className = 'nav-sub-item';
+      si.textContent = s;
+      si.onclick = function() { navGo(s); closeNav(); };
+      items.appendChild(si);
+    });
+    wrap.appendChild(btn); wrap.appendChild(items);
+    body.appendChild(wrap);
+    body.appendChild(Object.assign(document.createElement('hr'), {className:'nav-rule'}));
+  });
+}
+
+function openNav() {
+  document.getElementById('nav-drawer').classList.add('open');
+  document.getElementById('nav-overlay').classList.add('open');
+}
+function closeNav() {
+  document.getElementById('nav-drawer').classList.remove('open');
+  document.getElementById('nav-overlay').classList.remove('open');
+}
+
+const SCREEN_MAP = {
+  'Advanced Ticket Booking': 'screen-search',
+  'Current Booking':         'screen-current-booking',
+  'Block Seats':             'screen-block-seats',
+  'Un Block Seats':          'screen-unblock-seats',
+  'Link Ticket':             'screen-link-ticket',
+  'Circular Ticket':         'screen-circular-ticket',
+};
+function navGo(name) {
+  const id = SCREEN_MAP[name];
+  if (!id) return;
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-sub-item').forEach(function(si){ si.classList.toggle('active', si.textContent === name); });
+}
+
+/* ─── CLOCK ─── */
+function updateClock() {
+  var now = new Date();
+  document.querySelectorAll('.clock').forEach(function(el){
+    el.textContent = now.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+  });
+}
+
+/* ─── TRIP TYPE ─── */
+function setTrip(btn) {
+  const group = btn.closest('.seg-btn');
+  group.querySelectorAll('.seg-opt').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  const isReturn = btn.textContent === 'Return Trip';
+  const isTripNum = btn.textContent === 'Trip Number';
+  const screen = btn.closest('.screen');
+  // Show/hide return date fields
+  screen.querySelectorAll('[id$="-return"]').forEach(function(el){ el.style.display = isReturn ? '' : 'none'; });
+  // Show/hide trip number field
+  const tripWrap = screen.querySelector('[id$="trip-num-wrap"]');
+  if (tripWrap) tripWrap.style.display = isTripNum ? '' : 'none';
+  const singleLady = screen.querySelector('#single-lady-field');
+  if (singleLady) singleLady.style.display = isTripNum ? 'none' : '';
+}
+
+function swapSourceDest(btn) {
+  const fields = btn.closest('.search-fields');
+  const menus = fields.querySelectorAll('.ksrtc-select');
+  if (menus.length < 2) return;
+  const v0 = menus[0].dataset.value;
+  const v0txt = menus[0].querySelector('.ksrtc-select__value').textContent;
+  const v1 = menus[1].dataset.value;
+  const v1txt = menus[1].querySelector('.ksrtc-select__value').textContent;
+  menus[0].dataset.value = v1; menus[0].querySelector('.ksrtc-select__value').textContent = v1txt;
+  menus[1].dataset.value = v0; menus[1].querySelector('.ksrtc-select__value').textContent = v0txt;
+}
+
+/* ─── KSRTC SELECT DROPDOWN ─── */
+function md3Toggle(triggerBtn) {
+  const wrap = triggerBtn.closest('.ksrtc-select');
+  const isOpen = wrap.classList.contains('ksrtc-select--open');
+  document.querySelectorAll('.ksrtc-select.ksrtc-select--open').forEach(function(m){ m.classList.remove('ksrtc-select--open'); });
+  if (!isOpen) wrap.classList.add('ksrtc-select--open');
+}
+function md3Pick(item) {
+  const wrap = item.closest('.ksrtc-select');
+  const val = item.dataset.value || item.textContent.trim();
+  const displayVal = item.textContent.trim();
+  const valEl = wrap.querySelector('.ksrtc-select__value');
+  valEl.textContent = displayVal;
+  valEl.classList.remove('ksrtc-select__placeholder');
+  wrap.dataset.value = val;
+  wrap.classList.remove('ksrtc-select--open');
+  wrap.querySelectorAll('.ksrtc-select__option').forEach(function(i){ i.classList.toggle('ksrtc-select__option--selected', i === item); });
+  // Update address text if addr-target is set
+  var addrTarget = wrap.dataset.addrTarget;
+  var addrText = item.dataset.addr;
+  if (addrTarget && addrText) {
+    var el = document.getElementById(addrTarget);
+    if (el) el.textContent = addrText;
+  }
+  if (typeof wrap._onChange === 'function') wrap._onChange(val);
+}
+function md3SetValue(menuEl, val) {
+  menuEl.dataset.value = val;
+  const valEl = menuEl.querySelector('.ksrtc-select__value');
+  if (valEl) { valEl.textContent = val; valEl.classList.remove('ksrtc-select__placeholder'); }
+  menuEl.querySelectorAll('.ksrtc-select__option').forEach(function(i){ i.classList.toggle('ksrtc-select__option--selected', i.textContent.trim() === val); });
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.ksrtc-select')) {
+    document.querySelectorAll('.ksrtc-select.ksrtc-select--open').forEach(function(m){ m.classList.remove('ksrtc-select--open'); });
+  }
+  if (!e.target.closest('.md3-dp')) {
+    document.querySelectorAll('.md3-dp.open').forEach(function(d){
+      d.classList.remove('open');
+      d.querySelector('.dp-panel')?.classList.remove('open');
+    });
+  }
+  if (!e.target.closest('.ct-filter-wrap')) {
+    document.querySelectorAll('.ct-filter-panel.open').forEach(function(p){ p.classList.remove('open'); p.closest('.ct-filter-btn')?.classList.remove('open'); });
+  }
+});
+
+/* ─── DATE PICKER ─── */
+const DP_MONTHS   = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DP_MONTHS_S = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var dpState = {};
+
+function dpInit(id, date) {
+  var vd = date || new Date(2024, 1, 1);
+  dpState[id] = { sel: date ? new Date(date) : null, view: new Date(vd.getFullYear(), vd.getMonth(), 1), mode: 'cal' };
+  var wrap = document.getElementById(id);
+  if (wrap) wrap.classList.toggle('has-value', !!date);
+  dpRender(id);
+}
+
+function dpToggle(id) {
+  var wrap = document.getElementById(id);
+  var panel = document.getElementById(id + '-panel');
+  var isOpen = wrap.classList.contains('open');
+  document.querySelectorAll('.md3-dp.open').forEach(function(d){
+    d.classList.remove('open');
+    d.querySelector('.dp-panel')?.classList.remove('open');
+  });
+  if (!isOpen) { wrap.classList.add('open'); panel.classList.add('open'); }
+}
+
+function dpNav(id, dir) {
+  const s = dpState[id];
+  if (!s) return;
+  if (s.mode === 'month') {
+    s.view = new Date(s.view.getFullYear() + dir, s.view.getMonth(), 1);
+  } else {
+    s.view = new Date(s.view.getFullYear(), s.view.getMonth() + dir, 1);
+  }
+  dpRender(id);
+}
+
+function dpToggleMode(id) {
+  const s = dpState[id];
+  if (!s) return;
+  s.mode = (s.mode === 'month') ? 'cal' : 'month';
+  dpRender(id);
+}
+
+function dpPickMonth(id, yr, mo) {
+  const s = dpState[id];
+  s.view = new Date(yr, mo, 1);
+  s.mode = 'cal';
+  dpRender(id);
+}
+
+function dpRender(id) {
+  const s = dpState[id];
+  if (!s) return;
+  const yr = s.view.getFullYear(), mo = s.view.getMonth();
+  const lbl  = document.getElementById(id + '-lbl');
+  const grid = document.getElementById(id + '-grid');
+  const panel = document.getElementById(id + '-panel');
+  const dow  = panel ? panel.querySelector('.dp-dow') : null;
+  if (!lbl || !grid) return;
+
+  if (s.mode === 'month') {
+    lbl.textContent = yr;
+    if (dow) dow.style.display = 'none';
+    grid.className = 'dp-month-grid';
+    grid.innerHTML = '';
+    DP_MONTHS_S.forEach(function(m, i) {
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'dp-month-cell'; btn.textContent = m;
+      if (i === mo) btn.classList.add('cur-mo');
+      if (s.sel && i === s.sel.getMonth() && yr === s.sel.getFullYear()) btn.classList.add('has-sel');
+      const _i = i;
+      btn.onclick = function(e) { e.stopPropagation(); dpPickMonth(id, yr, _i); };
+      grid.appendChild(btn);
+    });
+  } else {
+    lbl.textContent = DP_MONTHS[mo] + ' ' + yr;
+    if (dow) dow.style.display = '';
+    grid.className = 'dp-grid';
+    grid.innerHTML = '';
+    const firstDay = new Date(yr, mo, 1).getDay();
+    const daysInMonth = new Date(yr, mo + 1, 0).getDate();
+    const today = new Date();
+    for (let e = 0; e < firstDay; e++) { const emp = document.createElement('div'); emp.className = 'dp-empty'; grid.appendChild(emp); }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'dp-day'; btn.textContent = d;
+      if (s.sel && d === s.sel.getDate() && mo === s.sel.getMonth() && yr === s.sel.getFullYear()) btn.classList.add('sel');
+      if (d === today.getDate() && mo === today.getMonth() && yr === today.getFullYear()) btn.classList.add('today');
+      const _d = d;
+      btn.onclick = function(e) { e.stopPropagation(); dpSelect(id, yr, mo, _d); };
+      grid.appendChild(btn);
+    }
+  }
+}
+
+function dpSelect(id, yr, mo, day) {
+  const s = dpState[id];
+  s.sel = new Date(yr, mo, day);
+  const label = String(day).padStart(2,'0') + ' ' + DP_MONTHS_S[mo] + ' ' + yr;
+  document.getElementById(id + '-val').textContent = label;
+  const wrap = document.getElementById(id);
+  wrap.classList.remove('open');
+  wrap.classList.add('has-value');
+  document.getElementById(id + '-panel').classList.remove('open');
+  dpRender(id);
+}
+
+/* ─── CLASS TYPE FILTER ─── */
+function toggleCtFilter(wrapperId) {
+  const wrap = document.getElementById(wrapperId);
+  const btn = wrap.querySelector('.ct-filter-btn');
+  const panel = wrap.querySelector('.ct-filter-panel');
+  btn.classList.toggle('open');
+  panel.classList.toggle('open');
+}
+function toggleCtOpt(opt, wrapperId, gridId) {
+  opt.classList.toggle('checked');
+  refreshGridFilter(gridId);
+}
+function refreshGridFilter(gridId) {
+  const api = _gridApis[gridId];
+  if (!api) return;
+  api.onFilterChanged();
+}
+
+/* ─── BUS DB ─── */
+var BUS_DB = [
+  /* Bengaluru → Mysuru */
+  { className:'AMBAARI UTSAV',       classTag:'AC SLEEPER',     trip:'2100BNGMYS', dep:'21:00', arr:'00:15', via:'RAMANAGARA-CHANNAPATNA-MADDUR',       seats:17, adultFare:'650 / 325', cnm:488, type:'REGU', cutoff:'45 min', depot:'BENGALURU 4', dist:148, src:'Bengaluru', dst:'Mysuru',    fare:650 },
+  { className:'AMBAARI UTSAV',       classTag:'AC SLEEPER',     trip:'2230BNGMYS', dep:'22:30', arr:'01:45', via:'KANAKAPURA-MALAVALLI-MANDYA',           seats:11, adultFare:'650 / 325', cnm:488, type:'REGU', cutoff:'45 min', depot:'BENGALURU 4', dist:151, src:'Bengaluru', dst:'Mysuru',    fare:650 },
+  { className:'AMBAARI DREEM CLASS', classTag:'AC SLEEPER',     trip:'2000BNGMYS', dep:'20:00', arr:'23:15', via:'CHANNAPATNA-MADDUR-MANDYA',             seats:24, adultFare:'720 / 360', cnm:540, type:'REGU', cutoff:'45 min', depot:'BENGALURU 4', dist:148, src:'Bengaluru', dst:'Mysuru',    fare:720 },
+  { className:'AMBAARI DREEM CLASS', classTag:'AC SLEEPER',     trip:'2115BNGMYS', dep:'21:15', arr:'00:30', via:'RAMANAGARA-CHANNAPATNA-MADDUR',         seats:9,  adultFare:'720 / 360', cnm:540, type:'EXPR', cutoff:'45 min', depot:'MYSURU',      dist:148, src:'Bengaluru', dst:'Mysuru',    fare:720 },
+  { className:'RAJAHAMSA',           classTag:'NON AC SEATER',  trip:'0600BNGMYS', dep:'06:00', arr:'09:30', via:'CHANNAPATNA-MADDUR-MANDYA',             seats:32, adultFare:'280 / 140', cnm:210, type:'EXPR', cutoff:'30 min', depot:'BENGALURU 4', dist:145, src:'Bengaluru', dst:'Mysuru',    fare:280 },
+  { className:'RAJAHAMSA',           classTag:'NON AC SEATER',  trip:'0730BNGMYS', dep:'07:30', arr:'11:00', via:'RAMANAGARA-CHANNAPATNA-MANDYA',         seats:8,  adultFare:'280 / 140', cnm:210, type:'REGU', cutoff:'30 min', depot:'BENGALURU 4', dist:145, src:'Bengaluru', dst:'Mysuru',    fare:280 },
+  { className:'AIRAVAT CLUB CLASS',  classTag:'AC SEATER',      trip:'0800BNGMYS', dep:'08:00', arr:'11:15', via:'RAMANAGARA-CHANNAPATNA-MADDUR',         seats:22, adultFare:'520 / 260', cnm:390, type:'EXPR', cutoff:'45 min', depot:'BENGALURU 4', dist:148, src:'Bengaluru', dst:'Mysuru',    fare:520 },
+  { className:'AIRAVAT CLUB CLASS',  classTag:'AC SEATER',      trip:'1630BNGMYS', dep:'16:30', arr:'19:45', via:'CHANNAPATNA-MADDUR-MANDYA',             seats:5,  adultFare:'520 / 260', cnm:390, type:'REGU', cutoff:'45 min', depot:'MYSURU',      dist:148, src:'Bengaluru', dst:'Mysuru',    fare:520 },
+  { className:'AIRAVAT GOLD CLASS',  classTag:'AC SEATER',      trip:'0630BNGMYS', dep:'06:30', arr:'09:45', via:'RAMANAGARA-CHANNAPATNA-MADDUR',         seats:14, adultFare:'580 / 290', cnm:435, type:'EXPR', cutoff:'45 min', depot:'BENGALURU 4', dist:148, src:'Bengaluru', dst:'Mysuru',    fare:580 },
+  { className:'NON AC SLEEPER',      classTag:'NON AC SLEEPER', trip:'2200BNGMYS', dep:'22:00', arr:'01:30', via:'RAMANAGARA-CHANNAPATNA-MADDUR',         seats:30, adultFare:'350 / 175', cnm:263, type:'REGU', cutoff:'30 min', depot:'MYSURU',      dist:148, src:'Bengaluru', dst:'Mysuru',    fare:350 },
+  /* Mysuru → Bengaluru */
+  { className:'AMBAARI UTSAV',       classTag:'AC SLEEPER',     trip:'2100MYSBNG', dep:'21:00', arr:'00:15', via:'MANDYA-MADDUR-CHANNAPATNA',             seats:14, adultFare:'650 / 325', cnm:488, type:'REGU', cutoff:'45 min', depot:'MYSURU',      dist:148, src:'Mysuru',    dst:'Bengaluru', fare:650 },
+  { className:'RAJAHAMSA',           classTag:'NON AC SEATER',  trip:'0630MYSBNG', dep:'06:30', arr:'10:00', via:'MANDYA-MADDUR-CHANNAPATNA',             seats:28, adultFare:'280 / 140', cnm:210, type:'EXPR', cutoff:'30 min', depot:'MYSURU',      dist:145, src:'Mysuru',    dst:'Bengaluru', fare:280 },
+  { className:'AIRAVAT CLUB CLASS',  classTag:'AC SEATER',      trip:'0730MYSBNG', dep:'07:30', arr:'10:45', via:'MANDYA-MADDUR-CHANNAPATNA',             seats:18, adultFare:'520 / 260', cnm:390, type:'EXPR', cutoff:'45 min', depot:'MYSURU',      dist:148, src:'Mysuru',    dst:'Bengaluru', fare:520 },
+  /* Hubli routes */
+  { className:'AMBAARI UTSAV',       classTag:'AC SLEEPER',     trip:'2131BNGMRD', dep:'21:31', arr:'04:50', via:'HASSAN-SKP-MNG-UDP (BCD4) KBS',        seats:17, adultFare:'1160 / 580', cnm:870, type:'REGU', cutoff:'45 min', depot:'BENGALURU 4', dist:361, src:'Bengaluru', dst:'Hubli',     fare:1160 },
+];
+function generateSeatData(count, seed) {
+  /* Returns {upper: cols[], lower: cols[], preSelected: Set}
+     Each col = {top:{n,t}, bot:{n,t}} or null (aisle marker) */
+  var rng = (function(s) {
+    return function() { s = (s * 1664525 + 1013904223) & 0xffffffff; return (s >>> 0) / 4294967295; };
+  })(seed * 7 + 13);
+  var TYPES = ['available','available','available','available','available','ladies','blocked','conductor','quota'];
+  var n = 1;
+  var preSelected = new Set();
+
+  function makeCol() {
+    var topT = TYPES[Math.floor(rng() * TYPES.length)];
+    var botT = TYPES[Math.floor(rng() * TYPES.length)];
+    var col = { top: { n: n, t: topT }, bot: { n: n + 1, t: botT } };
+    n += 2;
+    return col;
+  }
+  function makeDeck(numCols) {
+    var deck = [];
+    var side = Math.floor(numCols / 2);
+    for (var i = 0; i < side; i++) deck.push(makeCol());
+    deck.push(null); // aisle
+    for (var i = 0; i < numCols - side; i++) deck.push(makeCol());
+    return deck;
+  }
+  /* 5 cols per side per deck → 5×2×2 = 20 seats/deck, 40 total */
+  var deckCols = Math.max(4, Math.round(count / 8));
+  return { upper: makeDeck(deckCols), lower: makeDeck(deckCols), preSelected: preSelected };
+}
+
+BUS_DB.forEach(function(b, i) { b.seatData = generateSeatData(b.seats + 20, i); });
+
+/* ─── AG-GRID SETUP ─── */
+var _gridApis = {};
+var _detailRowHeight = 870;
+var _DETAIL_BASE_H = 830;
+var _DETAIL_PAX_H  = 44;
+var _openPanelGrid = null;
+var _openPanelRow  = null;
+
+/* Store original parent for each seat panel at script parse time
+   so we can rescue them when ag-Grid destroys its detail row */
+var _panelOrigParent = {};
+(function() {
+  ['seat-panel-wrap','cur-seat-panel-wrap','blk-panel-wrap','lnk-start-panel-wrap','lnk-connect-panel-wrap'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) _panelOrigParent[id] = el.parentNode;
+  });
+})();
+
+var _gridPanelMap = {
+  'ag-onward':      'seat-panel-wrap',
+  'ag-return':      'seat-panel-wrap',
+  'ag-cur':         'cur-seat-panel-wrap',
+  'ag-cur-return':  'cur-seat-panel-wrap',
+  'ag-blk':         'blk-panel-wrap',
+  'ag-lnk-start':   'lnk-start-panel-wrap',
+  'ag-lnk-connect': 'lnk-connect-panel-wrap',
+};
+
+function _calcDetailHeight(numSeats) {
+  return _DETAIL_BASE_H + (Math.max(1, numSeats) * _DETAIL_PAX_H);
+}
+
+function _insertDetailRow(gridId, busIdx) {
+  var api = _gridApis[gridId];
+  if (!api) return;
+  var rows = [];
+  api.forEachNode(function(n){ if (!n.data._detail) rows.push(n.data); });
+  var newRows = [];
+  rows.forEach(function(r, i){ newRows.push(r); if (i === busIdx) newRows.push({ _detail: true, _forGridId: gridId }); });
+  api.setGridOption('rowData', newRows);
+}
+
+function _removeDetailRow(gridId) {
+  var api = _gridApis[gridId];
+  if (!api) return;
+  var panelId = _gridPanelMap[gridId];
+  if (panelId) {
+    var panel = document.getElementById(panelId);
+    var origParent = _panelOrigParent[panelId];
+    if (panel && origParent && panel.parentNode !== origParent) {
+      origParent.appendChild(panel);
+    }
+    if (panel) panel.classList.remove('open');
+  }
+  var rows = [];
+  api.forEachNode(function(n){ if (!n.data._detail) rows.push(n.data); });
+  api.setGridOption('rowData', rows);
+}
+
+/* ── Cell renderers (ported from v1) ── */
+function agSeatRenderer(p) {
+  if (!p.data || p.data._group) return '';
+  var s = p.value;
+  var cls = s >= 15 ? 'many' : s >= 5 ? 'some' : 'few';
+  return '<span class="seat-chip ' + cls + '">' + s + '</span>';
+}
+function agTypeRenderer(p) {
+  if (!p.data || p.data._group) return '';
+  return '<span class="type-badge">' + p.value + '</span>';
+}
+function agCutoffRenderer(p) {
+  if (!p.data || p.data._group) return '';
+  return '<span class="cutoff-cell"><span class="msym" style="font-size:14px">schedule</span>' + p.value + '</span>';
+}
+function agGroupRenderer(p) {
+  var d = p.data;
+  return '<div class="ag-group-hdr">' +
+    '<span class="ag-group-name">' + d.className + '</span>' +
+    '<span class="ag-group-tag">' + d.classTag + '</span>' +
+    '<span class="ag-group-count">' + d._count + ' service' + (d._count > 1 ? 's' : '') + '</span>' +
+    '</div>';
+}
+
+/* ── Column definitions — one function per grid type (matches v1) ── */
+function agOnwardCols(selectFn) {
+  return [
+    { field:'dep',       headerName:'Departure',         width:100, minWidth:80 },
+    { field:'arr',       headerName:'Arrival',           width:100, minWidth:80 },
+    { field:'via',       headerName:'Via Place',         width:240, minWidth:120, tooltipField:'via' },
+    { field:'seats',     headerName:'Seats',             width:80,  minWidth:60 },
+    { field:'adultFare', headerName:'Adult Fare / Child',width:150, minWidth:100 },
+    { field:'cnm',       headerName:'CNM Fare',          width:90,  minWidth:70 },
+    { field:'type',      headerName:'Type',              width:80,  minWidth:70 },
+    { field:'cutoff',    headerName:'Cut-Off',           width:110, minWidth:80,  cellRenderer:agCutoffRenderer },
+    { field:'depot',     headerName:'Depot Name',        width:140, minWidth:100, tooltipField:'depot' },
+    { field:'dist',      headerName:'Distance (Km)',     width:120, minWidth:80,  filter:'agNumberColumnFilter' },
+    { field:'trip',      headerName:'Trip Code',         flex:1,    minWidth:100 },
+    { headerName:'Action', width:88, minWidth:88, maxWidth:88, pinned:'right', sortable:false, filter:false, resizable:false,
+      cellRenderer: function(p) {
+        if (!p.data || p.data._group || p.data._detail) return '';
+        return '<button class="btn btn-orange btn-sm" style="width:100%;justify-content:center" onclick="' + selectFn + '(' + p.rowIndex + ',\'' + p.context.gridId + '\')">Select</button>';
+      }
+    }
+  ];
+}
+function agTripNumCols() {
+  return [
+    { field:'trip',      headerName:'Trip Number',       width:150, minWidth:110 },
+    { field:'className', headerName:'Service',           width:170, minWidth:120 },
+    { field:'dep',       headerName:'Departure',         width:100, minWidth:80 },
+    { field:'arr',       headerName:'Arrival',           width:100, minWidth:80 },
+    { field:'via',       headerName:'Via Place',         width:220, minWidth:120, tooltipField:'via' },
+    { field:'seats',     headerName:'Seats',             width:80,  minWidth:60 },
+    { field:'adultFare', headerName:'Adult Fare / Child',width:150, minWidth:100 },
+    { field:'type',      headerName:'Type',              width:80,  minWidth:70 },
+    { field:'depot',     headerName:'Depot',             flex:1,    minWidth:100 },
+    { headerName:'Action', width:88, minWidth:88, maxWidth:88, pinned:'right', sortable:false, filter:false, resizable:false,
+      cellRenderer: function(p) {
+        if (!p.data || p.data._group || p.data._detail) return '';
+        return '<button class="btn btn-orange btn-sm" style="width:100%;justify-content:center" onclick="selectBus(' + p.rowIndex + ',\'' + p.context.gridId + '\')">Select</button>';
+      }
+    }
+  ];
+}
+function agCurCols(selectFn) {
+  return [
+    { field:'trip',      headerName:'Trip Code',         width:140, minWidth:100 },
+    { field:'depot',     headerName:'Depot Name',        width:140, minWidth:100, tooltipField:'depot' },
+    { field:'via',       headerName:'Via Place',         width:220, minWidth:120, tooltipField:'via' },
+    { field:'dist',      headerName:'Distance (Kms)',    width:120, minWidth:80,  filter:'agNumberColumnFilter' },
+    { field:'dep',       headerName:'Departure Time',    width:120, minWidth:80 },
+    { field:'arr',       headerName:'Arrival Time',      width:120, minWidth:80 },
+    { field:'adultFare', headerName:'Adult Fare',        width:150, minWidth:100 },
+    { field:'type',      headerName:'Type',              width:80,  minWidth:70 },
+    { field:'seats',     headerName:'Seats',             width:80,  minWidth:60 },
+    { field:'cutoff',    headerName:'Cut-Off',           flex:1,    minWidth:80,  cellRenderer:agCutoffRenderer },
+    { headerName:'Action', width:104, minWidth:88, pinned:'right', sortable:false, filter:false, resizable:false,
+      cellRenderer: function(p) {
+        if (!p.data || p.data._group || p.data._detail) return '';
+        return '<button class="btn btn-orange btn-sm" style="width:100%;justify-content:center" onclick="' + selectFn + '(' + p.rowIndex + ',\'' + p.context.gridId + '\')">Select</button>';
+      }
+    }
+  ];
+}
+var agUnblockCols = [
+  { field:'source',    headerName:'Source',           width:150, minWidth:100 },
+  { field:'dest',      headerName:'Destination',      width:150, minWidth:100 },
+  { field:'blockType', headerName:'Blocking Type',    width:160, minWidth:100 },
+  { field:'refNo',     headerName:'Reference Number', width:160, minWidth:100 },
+  { field:'seatNo',    headerName:'Seat No(s).',      flex:1,    minWidth:70 },
+  { headerName:'Action', width:100, minWidth:88, pinned:'right', sortable:false, filter:false, resizable:false,
+    cellRenderer: function(p) {
+      if (!p.data) return '';
+      return '<button class="btn btn-outlined btn-sm" style="width:100%" onclick="selectUnblkBus()">Unblock</button>';
+    }
+  }
+];
+
+/* Dispatcher — maps agCreateGrid type string to column array */
+function agColDefs(type) {
+  if (type === 'return')       return agOnwardCols('selectReturnBus');
+  if (type === 'trip-num')     return agTripNumCols();
+  if (type === 'current')      return agCurCols('selectCurBus');
+  if (type === 'block')        return agCurCols('selectBlkBus');
+  if (type === 'unblock')      return agUnblockCols;
+  if (type === 'link-start')   return agCurCols('selectLnkStartBus');
+  if (type === 'link-connect') return agCurCols('selectLnkConnectBus');
+  return agOnwardCols('selectBus'); /* default: 'search' */
+}
+
+function agGetRowHeight(p) {
+  return (p.data && p.data._detail) ? _detailRowHeight : 42;
+}
+function agIsFullWidthRow(p) {
+  return !!(p.rowNode && p.rowNode.data && p.rowNode.data._detail);
+}
+function agFullWidthRenderer(p) {
+  var gridId = p.node.data._forGridId || _openPanelGrid;
+  var panelId = _gridPanelMap[gridId];
+  var div = document.createElement('div');
+  div.style.cssText = 'width:100%;height:100%;';
+  setTimeout(function(){
+    var panel = document.getElementById(panelId);
+    if (!panel) return;
+    div.appendChild(panel);
+    panel.classList.add('open');
+    setTimeout(function(){
+      panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    }, 60);
+  }, 0);
+  return div;
+}
+
+function agCreateGrid(containerId, rowData, type) {
+  var existing = _gridApis[containerId];
+  if (existing) { try { existing.destroy(); } catch(e){} }
+  var panelId = _gridPanelMap[containerId];
+  if (panelId) {
+    var panel = document.getElementById(panelId);
+    var orig  = _panelOrigParent[panelId];
+    if (panel && orig && panel.parentNode !== orig) orig.appendChild(panel);
+  }
+  var ctx = { gridId: containerId };
+  var options = {
+    columnDefs: agColDefs(type),
+    rowData: rowData,
+    getRowHeight: agGetRowHeight,
+    isFullWidthRow: agIsFullWidthRow,
+    fullWidthCellRenderer: agFullWidthRenderer,
+    rowSelection: 'single',
+    suppressRowClickSelection: true,
+    pagination: true,
+    paginationPageSize: 8,
+    domLayout: 'autoHeight',
+    context: ctx,
+    defaultColDef: { resizable: true, sortable: true, filter: false },
+    isExternalFilterPresent: function(){ return true; },
+    doesExternalFilterPass: function(node){
+      if (node.data._detail) return true;
+      var wrap = document.getElementById(containerId + '-filter-wrap') || document.querySelector('#ct-filter-onward');
+      if (!wrap) return true;
+      var checked = [];
+      wrap.querySelectorAll('.ct-opt.checked').forEach(function(o){ checked.push(o.dataset.val); });
+      return checked.length === 0 || checked.indexOf(node.data.className) >= 0;
+    },
+  };
+  var api = agGrid.createGrid(document.getElementById(containerId), options);
+  _gridApis[containerId] = api;
+  return api;
+}
+
+/* ─── SELECTED STATE ─── */
+var _selectedSeats   = [];
+var selectedSeats    = new Set();
+var currentBusFare   = 0;
+var currentBusIsAC   = false;
+var _selectedBus     = null;
+var _currentGridId   = null;
+var _currentContext  = 'main';
+
+/* ─── SEARCH ─── */
+function doSearch() {
+  var src = document.getElementById('src-menu');
+  var dst = document.getElementById('dst-menu');
+  if (!src.dataset.value || !dst.dataset.value) {
+    showToast('Please select source and destination.', 'warning');
+    return;
+  }
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('results-wrap').style.display = 'flex';
+  var filteredBuses = BUS_DB.filter(function(b){
+    return b.src.toLowerCase().includes(src.dataset.value.toLowerCase()) ||
+           b.dst.toLowerCase().includes(dst.dataset.value.toLowerCase());
+  });
+  if (!filteredBuses.length) filteredBuses = BUS_DB.slice(0,6);
+  _detailRowHeight = _calcDetailHeight(1);
+  _openPanelGrid = 'ag-onward';
+  agCreateGrid('ag-onward', filteredBuses, 'search');
+  document.getElementById('onward-sub-text').textContent = filteredBuses.length + ' services found';
+  showToast(filteredBuses.length + ' buses found for ' + src.dataset.value + ' → ' + dst.dataset.value, 'success');
+  // Return trip
+  const tripMode = document.querySelector('#trip-btn .seg-opt.active')?.textContent;
+  if (tripMode === 'Return Trip') {
+    document.getElementById('return-card').style.display = '';
+    agCreateGrid('ag-return', filteredBuses.slice().reverse(), 'search');
+  } else {
+    document.getElementById('return-card').style.display = 'none';
+  }
+}
+
+function doReset() {
+  document.getElementById('empty-state').style.display = '';
+  document.getElementById('results-wrap').style.display = 'none';
+  _selectedSeats = []; _selectedBus = null; _currentGridId = null;
+}
+
+/* ─── SELECT BUS ─── */
+function _openBusPanel(rowIndex, gridId, context) {
+  _currentGridId = gridId;
+  var api = _gridApis[_currentGridId];
+  if (!api) return;
+  var rows = []; api.forEachNode(function(n){ if (!n.data._detail) rows.push(n.data); });
+  if (_openPanelRow === rowIndex && _openPanelGrid === _currentGridId) {
+    _removeDetailRow(_currentGridId); _openPanelRow = null; _openPanelGrid = null; return;
+  }
+  if (_openPanelGrid) _removeDetailRow(_openPanelGrid);
+  _openPanelGrid = _currentGridId; _openPanelRow = rowIndex;
+  var bus = rows[rowIndex]; if (!bus) return;
+  _selectedBus = bus;
+  selectedSeats.clear(); _selectedSeats = [];
+  currentBusFare = bus.fare || 850;
+  currentBusIsAC = bus.classTag ? bus.classTag.toLowerCase().includes('ac') : false;
+  _currentContext = context;
+  _detailRowHeight = _calcDetailHeight(0);
+  var idMap = {
+    'main':        { up:'upper-grid',           lo:'lower-grid'           },
+    'cur':         { up:'cur-upper-grid',        lo:'cur-lower-grid'       },
+    'blk':         { up:'blk-upper-grid',        lo:'blk-lower-grid'       },
+    'lnk-start':   { up:'lnk-start-upper-grid', lo:'lnk-start-lower-grid' },
+    'lnk-connect': { up:'lnk-connect-upper-grid',lo:'lnk-connect-lower-grid'}
+  };
+  var ids = idMap[context];
+  buildGrid(ids.up, ids.lo, bus.seatData, context);
+  updateFareCard();
+  _insertDetailRow(_currentGridId, rowIndex);
+}
+function selectBus(rowIndex, gridId)        { _openBusPanel(rowIndex, gridId || 'ag-onward',      'main'); }
+function selectCurBus(rowIndex, gridId) {
+  _openBusPanel(rowIndex, gridId || 'ag-cur', 'cur');
+  /* pre-populate passenger rows from No. of Passengers search field */
+  var tbody = document.getElementById('cur-pax-rows');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  var passengerSelect = document.querySelector('#screen-current-booking .ksrtc-select[data-value]');
+  var count = parseInt((passengerSelect && passengerSelect.dataset.value) || '2', 10);
+  if (isNaN(count) || count < 1) count = 2;
+  for (var i = 0; i < count; i++) { addCurPaxRow(); }
+}
+function addCurPaxRow() {
+  var tbody = document.getElementById('cur-pax-rows');
+  if (!tbody) return;
+  var tr = document.createElement('tr');
+  tr.innerHTML =
+    '<td><input type="text" placeholder="Full name" style="width:140px;"></td>' +
+    '<td><select><option value="">—</option><option>Male</option><option>Female</option><option>Other</option></select></td>' +
+    '<td><input type="number" min="1" max="99" placeholder="Age" style="width:52px;"></td>' +
+    '<td><select><option>General Public</option><option>Senior Citizen</option><option>Student</option><option>Divyangjan</option></select></td>' +
+    '<td><select><option>India</option><option>Foreign</option></select></td>' +
+    '<td><strong>₹' + (currentBusFare || 70).toFixed(2) + '</strong></td>' +
+    '<td><button type="button" class="btn btn-outlined" style="padding:2px 8px;font-size:11px;" onclick="this.closest(\'tr\').remove()">Remove</button></td>';
+  tbody.appendChild(tr);
+}
+function selectBlkBus(rowIndex, gridId) {
+  _openBusPanel(rowIndex, gridId || 'ag-blk', 'blk');
+  var el = document.getElementById('blk-ref');
+  if (el) el.textContent = 'BLK' + Date.now().toString().slice(-6);
+}
+function selectUnblkBus()                   { showToast('Seat unblocked successfully.', 'success'); }
+function selectLnkStartBus(rowIndex, gridId){ _openBusPanel(rowIndex, gridId || 'ag-lnk-start',   'lnk-start'); }
+function selectLnkConnectBus(rowIndex, gridId){ _openBusPanel(rowIndex, gridId || 'ag-lnk-connect','lnk-connect'); }
+
+/* ─── SEAT MAP ─── */
+function makeSeat(s, context) {
+  if (!s) return document.createElement('span');
+  var el = document.createElement('div');
+  el.className = 'seat ' + s.t + (selectedSeats.has(s.n) ? ' selected' : '');
+  el.textContent = s.n;
+  el.id = 'seat-' + context + '-' + s.n;
+  el.dataset.orig = s.t;
+  if (s.t !== 'blocked' && s.t !== 'conductor') {
+    (function(_el, _n, _orig, _ctx){ _el.onclick = function(){ toggleSeat(_el, _n, _orig, _ctx); }; })(el, s.n, s.t, context);
+  }
+  return el;
+}
+
+function buildGrid(upperContainerId, lowerContainerId, seats, context) {
+  var upperEl = document.getElementById(upperContainerId);
+  var lowerEl = document.getElementById(lowerContainerId);
+  if (!upperEl || !lowerEl) return;
+  upperEl.innerHTML = ''; lowerEl.innerHTML = '';
+  function buildDeck(container, cols) {
+    cols.forEach(function(col) {
+      if (!col) {
+        var gap = document.createElement('div');
+        gap.className = 'berth-gap';
+        container.appendChild(gap);
+      } else {
+        var bCol = document.createElement('div');
+        bCol.className = 'berth-col';
+        bCol.appendChild(makeSeat(col.top, context));
+        bCol.appendChild(makeSeat(col.bot, context));
+        container.appendChild(bCol);
+      }
+    });
+  }
+  buildDeck(upperEl, seats.upper);
+  buildDeck(lowerEl, seats.lower);
+}
+
+/* ─── TOGGLE SEAT ─── */
+function toggleSeat(el, n, origType, ctx) {
+  ctx = ctx || _currentContext || 'main';
+  if (selectedSeats.has(n)) {
+    selectedSeats.delete(n);
+    el.className = 'seat ' + origType;
+    removePaxRow(n, ctx);
+  } else {
+    selectedSeats.add(n);
+    el.className = 'seat selected' + (origType === 'ladies' ? ' ladies' : origType === 'quota' ? ' quota' : '');
+    addPaxRow(n, ctx);
+  }
+  updateFareCard();
+  /* keep Blocked Seats field in sync when blocking */
+  if ((_currentContext || '') === 'blk') {
+    var blkField = document.getElementById('blk-seats-field');
+    if (blkField) blkField.value = Array.from(selectedSeats).sort(function(a,b){return a-b;}).join(',');
+  }
+}
+
+/* ─── PAX ROWS ─── */
+var _paxIdsMap = {
+  'main':'pax-rows', 'cur':'cur-pax-rows', 'blk':null,
+  'lnk-start':'lnk-start-pax-rows', 'lnk-connect':'lnk-connect-pax-rows'
+};
+var _fareIdsMap = {
+  'main':'fare-card', 'cur':'cur-fare-card', 'blk':'blk-fare-card',
+  'lnk-start':'lnk-start-fare-card', 'lnk-connect':'lnk-connect-fare-card'
+};
+
+function addPaxRow(n, ctx) {
+  var tbodyId = _paxIdsMap[ctx];
+  if (!tbodyId) return;
+  var tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+  var placeholder = tbody.querySelector('.pax-empty');
+  if (placeholder) placeholder.remove();
+  var tr = document.createElement('tr');
+  tr.dataset.seat = n;
+  tr.innerHTML =
+    '<td><strong>' + n + '</strong></td>' +
+    '<td><input type="text" placeholder="Full name"></td>' +
+    '<td><select><option value="">—</option><option>Male</option><option>Female</option><option>Other</option></select></td>' +
+    '<td><input type="number" min="1" max="99" placeholder="Age" style="width:52px;"></td>' +
+    '<td><select><option>None</option><option>Senior Citizen</option><option>Student</option><option>Freedom Fighter</option><option>Divyangjan</option></select></td>' +
+    '<td><select><option>Indian</option><option>Foreign</option></select></td>' +
+    '<td><strong>₹' + currentBusFare.toFixed(2) + '</strong></td>';
+  tbody.appendChild(tr);
+}
+
+function removePaxRow(n, ctx) {
+  var tbodyId = _paxIdsMap[ctx];
+  if (!tbodyId) return;
+  var tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+  var row = tbody.querySelector('tr[data-seat="' + n + '"]');
+  if (row) row.remove();
+  if (!tbody.rows.length) {
+    tbody.innerHTML = '<tr class="pax-empty"><td colspan="7" style="text-align:center;padding:12px;font-size:12px;color:var(--on-surface-variant);">Select seats from the map</td></tr>';
+  }
+}
+
+/* ─── FARE CARD ─── */
+function updateFareCard() {
+  var ctx = _currentContext || 'main';
+  var fareCardId = _fareIdsMap[ctx];
+  if (!fareCardId) return;
+  var container = document.getElementById(fareCardId);
+  if (!container) return;
+  var n = selectedSeats.size;
+  if (!n) { container.innerHTML = '<div class="fare-line"><span class="fl-label">Select seats to see fare</span></div>'; return; }
+  var basic = n * currentBusFare;
+  var resFee = n * 20;
+  var otherCharges = n * 11;
+  var gst = currentBusIsAC ? Math.round((basic + resFee + otherCharges) * 0.05) : 0;
+  var total = basic + resFee + otherCharges + gst;
+  var credit = 50856 - total;
+  container.innerHTML =
+    '<div class="fare-line"><span class="fl-label">Basic Fare</span><span class="fl-val">₹' + basic.toFixed(2) + '</span></div>' +
+    '<div class="fare-line"><span class="fl-label">Reservation Fee (×' + n + ')</span><span class="fl-val">₹' + resFee.toFixed(2) + '</span></div>' +
+    '<div class="fare-line"><span class="fl-label">Other Charges (×' + n + ')</span><span class="fl-val">₹' + otherCharges.toFixed(2) + '</span></div>' +
+    (gst ? '<div class="fare-line"><span class="fl-label">GST (5%)</span><span class="fl-val">₹' + gst.toFixed(2) + '</span></div>' : '') +
+    '<div class="fare-line total"><span class="fl-label">Total</span><span class="fl-val">₹' + total.toFixed(2) + '</span></div>' +
+    '<div class="fare-line balance"><span class="fl-label">Balance Credit</span><span class="fl-val">₹' + credit.toFixed(2) + '</span></div>';
+}
+
+/* ─── CLEAR SELECTION ─── */
+function clearSeatSelection(context, paxRowsId, fareCardId) {
+  selectedSeats.forEach(function(n) {
+    var btn = document.getElementById('seat-' + context + '-' + n);
+    if (btn) { btn.className = 'seat ' + (btn.dataset.orig || 'available'); }
+  });
+  selectedSeats.clear(); _selectedSeats = [];
+  if (paxRowsId) {
+    var tbody = document.getElementById(paxRowsId);
+    if (tbody) tbody.innerHTML = '<tr class="pax-empty"><td colspan="7" style="text-align:center;padding:12px;font-size:12px;color:var(--on-surface-variant);">Select seats from the map</td></tr>';
+  }
+  if (fareCardId) {
+    var fc = document.getElementById(fareCardId);
+    if (fc) fc.innerHTML = '<div class="fare-line"><span class="fl-label">Select seats to see fare</span></div>';
+  }
+}
+
+/* ─── CLOSE PANELS ─── */
+function _closePanel(fallbackGrid) { _removeDetailRow(_openPanelGrid || fallbackGrid); _openPanelGrid = null; _openPanelRow = null; selectedSeats.clear(); _selectedSeats = []; }
+function closeSeatPanel()     { _closePanel('ag-onward'); }
+function closePanelCurrent()  { _closePanel('ag-cur'); }
+function closePanelBlock()    { _closePanel('ag-blk'); }
+function closePanelLinkStart(){ _closePanel('ag-lnk-start'); }
+function closePanelLinkConnect(){ _closePanel('ag-lnk-connect'); }
+
+/* ─── PAYMENT MODE ─── */
+function payModePick(item) {
+  var val = item.dataset.value;
+  document.getElementById('pay-ref-wrap').style.display = (val && val !== 'CASH') ? '' : 'none';
+}
+function curPayModePick(item) {
+  md3Pick(item);
+  var val = item.dataset.value;
+  var subField = document.getElementById('cur-pay-sub-field');
+  var subList  = document.getElementById('cur-pay-sub-list');
+  var subLabel = document.getElementById('cur-pay-sub-label');
+  var subOpts = { UPI: ['Google Pay','PhonePe','BHIM'], CARD: ['Debit Card','Credit Card','Prepaid'], NET_BANKING: ['SBI','HDFC','ICICI'] };
+  if (val && subOpts[val]) {
+    subField.style.display = '';
+    subLabel.textContent = val + ' Type *';
+    subList.innerHTML = '';
+    subOpts[val].forEach(function(o){
+      var d = document.createElement('div');
+      d.className = 'ksrtc-select__option'; d.textContent = o;
+      d.onclick = function(){ md3Pick(d); };
+      subList.appendChild(d);
+    });
+  } else {
+    subField.style.display = 'none';
+  }
+}
+
+/* ─── GENERATE TICKET ─── */
+function generateTicket() {
+  if (!_selectedSeats.length) { showToast('Please select at least one seat.', 'warning'); return; }
+  document.getElementById('confirm-pnr').textContent = 'PNR ' + Math.random().toString(36).substr(2,8).toUpperCase();
+  document.getElementById('confirm-backdrop').classList.add('open');
+}
+function closeConfirmDialog() { document.getElementById('confirm-backdrop').classList.remove('open'); }
+function backdropClose(e) { if (e.target === e.currentTarget) closeConfirmDialog(); }
+function goToTicket() {
+  closeConfirmDialog();
+  closeSeatPanel();
+  buildTicket();
+  navGo('_ticket');
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('screen-ticket').classList.add('active');
+}
+
+function buildTicket() {
+  var bus = _selectedBus || BUS_DB[0];
+  var pnr = 'PNR' + Math.random().toString(36).substr(2,8).toUpperCase();
+  var today = new Date().toLocaleDateString('en-IN');
+  document.querySelector('#screen-ticket .tkt-ref').textContent = pnr + ' | Booked: ' + today;
+  var grid = document.querySelector('#screen-ticket .tkt-grid');
+  var fields = [
+    [today, bus.dep + ' / ' + bus.trip],
+    [bus.trip, bus.type],
+    ['Karnataka SRTC', ''],
+    [bus.src, 'Kempegowda BS'],
+    [bus.src, bus.dst],
+    [bus.dep, ''],
+    [selectedSeats.size + ' Seat(s)', ''],
+    ['₹' + (_selectedBus ? selectedSeats.size * (_selectedBus.fare || 850) : 0), ''],
+  ];
+  var gridItems = grid.querySelectorAll('.tf');
+  var labels = ['Booked Date / Date of Journey','eKRPT / Trip Code','State','Origin / Start Place','Boarding Point / Dropping','Departure Time','Total Seats','Total Amount'];
+  labels.forEach(function(l, i){ if (gridItems[i]) { gridItems[i].querySelector('.tf-lbl').textContent = l; gridItems[i].querySelector('.tf-val').textContent = fields[i][0] + (fields[i][1] ? ' / ' + fields[i][1] : ''); } });
+  var tbody = document.querySelector('#screen-ticket .tkt-pax tbody');
+  tbody.innerHTML = '';
+  selectedSeats.forEach(function(sn){
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>'+sn+'</td><td>Passenger</td><td>—</td><td>—</td><td>General</td><td>Indian</td><td>₹'+(bus.fare||850)+'</td>';
+    tbody.appendChild(tr);
+  });
+  showToast('Ticket generated!', 'success');
+}
+
+function backToSearch() {
+  navGo('Advanced Ticket Booking');
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('screen-search').classList.add('active');
+}
+
+/* ─── CURRENT BOOKING SEARCH ─── */
+function doCurSearch() {
+  document.getElementById('cur-empty-state').style.display = 'none';
+  document.getElementById('cur-results-wrap').style.display = 'flex';
+  var buses = BUS_DB.slice(0,5);
+  _detailRowHeight = _calcDetailHeight(0);
+  _openPanelGrid = 'ag-cur';
+  agCreateGrid('ag-cur', buses, 'current');
+  var tripMode = document.querySelector('#cur-trip-btn .seg-opt.active')?.textContent;
+  if (tripMode === 'Return Trip') {
+    document.getElementById('cur-return-card').style.display = '';
+    agCreateGrid('ag-cur-return', buses.slice().reverse(), 'current');
+  } else {
+    document.getElementById('cur-return-card').style.display = 'none';
+  }
+  showToast(buses.length + ' services found', 'success');
+}
+
+/* ─── BLOCK SEARCH ─── */
+function doBlkSearch() {
+  document.getElementById('blk-empty-state').style.display = 'none';
+  document.getElementById('blk-results-wrap').style.display = 'flex';
+  var buses = BUS_DB.slice(0,6);
+  _detailRowHeight = _calcDetailHeight(0);
+  _openPanelGrid = 'ag-blk';
+  agCreateGrid('ag-blk', buses, 'block');
+  showToast('Found ' + buses.length + ' services.', 'success');
+}
+
+/* ─── UNBLOCK SEARCH ─── */
+function doUnblockSearch() {
+  document.getElementById('unblk-empty-state').style.display = 'none';
+  document.getElementById('unblk-results-wrap').style.display = 'flex';
+  var buses = BUS_DB.slice(0,4).map(function(b){ return Object.assign({}, b, {_status:'Blocked'}); });
+  agCreateGrid('ag-unblk', buses, 'unblock');
+  showToast('Found ' + buses.length + ' blocked services.', 'success');
+}
+
+/* ─── CIRCULAR TICKET ─── */
+var _circLegCount = 0;
+function _makeCircularLeg() {
+  _circLegCount++;
+  var idx = _circLegCount;
+  var cities = ['Bengaluru','Mysuru','Hubli','Mangaluru','Hassan','Mandya','Tumkur','Ballari'];
+  var opts = cities.map(function(c){ return '<div class="ksrtc-select__option" onclick="md3Pick(this)">' + c + '</div>'; }).join('');
+  var dpId = 'dp-circ-' + idx;
+  var div = document.createElement('div');
+  div.className = 'circ-leg';
+  div.dataset.leg = idx;
+  div.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr auto auto;gap:10px;align-items:end;padding:10px 0;border-bottom:1px solid var(--color-outline-variant);';
+  div.innerHTML =
+    '<div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Source *</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel">' + opts + '</div></div></div>' +
+    '<div class="ksrtc-select ksrtc-select--outlined ksrtc-select--full ksrtc-select--md" data-value=""><div class="ksrtc-select__anchor"><span class="ksrtc-select__label">Destination *</span><button class="ksrtc-select__trigger" type="button" onclick="md3Toggle(this)"><span class="ksrtc-select__value ksrtc-select__placeholder"></span><span class="ksrtc-select__chevron material-symbols-outlined">expand_more</span></button><div class="ksrtc-select__panel">' + opts + '</div></div></div>' +
+    '<div class="md3-dp" id="' + dpId + '"><label class="md3-border-lbl">Journey Date *</label><div class="dp-trigger" onclick="dpToggle(\'' + dpId + '\')"><span class="dp-trigger-val" id="' + dpId + '-val"></span><span class="msym dp-cal-ico">calendar_month</span></div><div class="dp-panel" id="' + dpId + '-panel"><div class="dp-head"><button class="dp-nav-btn" type="button" onclick="dpNav(\'' + dpId + '\',-1);event.stopPropagation()"><span class="msym">chevron_left</span></button><button class="dp-month-lbl" type="button" id="' + dpId + '-lbl" onclick="dpToggleMode(\'' + dpId + '\');event.stopPropagation()"></button><button class="dp-nav-btn" type="button" onclick="dpNav(\'' + dpId + '\',1);event.stopPropagation()"><span class="msym">chevron_right</span></button></div><div class="dp-dow"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div><div class="dp-grid" id="' + dpId + '-grid"></div></div></div>' +
+    '<label class="check-field" style="white-space:nowrap;"><input type="checkbox"> Single Lady</label>' +
+    (idx > 1 ? '<button class="btn btn-outlined" onclick="removeCircularLeg(this)" style="height:40px;"><span class="msym">delete</span></button>' : '<div></div>');
+  dpInit(dpId);
+  return div;
+}
+function addCircularLeg() {
+  document.getElementById('circular-legs-wrap').appendChild(_makeCircularLeg());
+}
+function removeCircularLeg(btn) {
+  btn.closest('.circ-leg').remove();
+}
+function resetCircular() {
+  _circLegCount = 0;
+  var wrap = document.getElementById('circular-legs-wrap');
+  wrap.innerHTML = '';
+  wrap.appendChild(_makeCircularLeg());
+  document.getElementById('circ-empty-state').style.display = '';
+  document.getElementById('circ-results-wrap').style.display = 'none';
+}
+function doCircularSearch() {
+  document.getElementById('circ-empty-state').style.display = 'none';
+  document.getElementById('circ-results-wrap').style.display = 'flex';
+  agCreateGrid('ag-circ', BUS_DB.slice(0,6), 'main');
+  showToast('Circular services found.', 'success');
+}
+
+/* ─── LINK TICKET SEARCH ─── */
+function proceedLinkTrip() {
+  document.getElementById('link-empty-state').style.display = 'none';
+  document.getElementById('link-results-wrap').style.display = 'flex';
+  var startBuses = BUS_DB.slice(0,4);
+  var connectBuses = BUS_DB.slice(2,6);
+  agCreateGrid('ag-lnk-start',   startBuses,   'link-start');
+  agCreateGrid('ag-lnk-connect', connectBuses, 'link-connect');
+  showToast('Start and connect trips loaded.', 'success');
+}
+
+/* ─── TOAST ─── */
+function showToast(msg, type, duration) {
+  type = type || 'default';
+  duration = duration || 2800;
+  var portal = document.getElementById('toast-portal');
+  var t = document.createElement('div');
+  t.className = 'toast ' + type;
+  var icon = type === 'success' ? 'check_circle' : type === 'error' ? 'error' : type === 'warning' ? 'warning' : 'info';
+  t.innerHTML = '<span class="msym">' + icon + '</span>' + msg;
+  portal.appendChild(t);
+  setTimeout(function(){ t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(function(){ t.remove(); }, 350); }, duration);
+}
+
+/* ─── SUCCESS MODAL ─── */
+function showSuccessModal(msg) {
+  document.getElementById('success-modal-msg').textContent = msg;
+  document.getElementById('success-modal-backdrop').classList.add('open');
+}
+function closeSuccessModal() {
+  document.getElementById('success-modal-backdrop').classList.remove('open');
+}
+
+/* ─── BOARDING ADDR ─── */
+function updateBoardAddr(triggerBtn) {
+  var wrap = triggerBtn.closest('.ksrtc-select');
+  var addrId = wrap.dataset.addrTarget;
+  if (addrId) {
+    var addr = document.getElementById(addrId);
+    if (addr) addr.textContent = 'Platform ' + (Math.floor(Math.random()*12)+1) + ', Bay ' + (Math.floor(Math.random()*20)+1);
+  }
+}
+
+/* ─── INIT ─── */
+document.addEventListener('DOMContentLoaded', function() {
+  buildNav();
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // Init all date pickers with today's date
+  var today = new Date();
+  ['dp-journey','dp-return','dp-cur-journey','dp-cur-return','dp-blk-journey','dp-blk-return','dp-unblk-journey','dp-lnk-journey'].forEach(function(id) {
+    dpInit(id, null);
+  });
+
+  // Init first circular ticket leg
+  addCircularLeg();
+
+  // Show default screen
+  document.getElementById('screen-search').classList.add('active');
+
+  // Keyboard nav: Escape closes dropdowns
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.ksrtc-select.ksrtc-select--open').forEach(function(m){ m.classList.remove('ksrtc-select--open'); });
+      document.querySelectorAll('.md3-dp.open').forEach(function(d){ d.classList.remove('open'); d.querySelector('.dp-panel')?.classList.remove('open'); });
+      closeNav();
+    }
+  });
+});
+</script>
+</body>
+</html>
